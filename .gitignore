@@ -1,0 +1,11 @@
+# General project
+
+dist
+node_modules
+.wireit
+java
+
+.venv
+.env
+uv.lock
+__pycache__

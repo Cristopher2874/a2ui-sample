@@ -1,0 +1,406 @@
+C:\Users\Cristopher Hdz\Desktop\Test\first-lit\app\server>uv run .
+Hello from server!
+C:\Users\Cristopher Hdz\Desktop\Test\first-lit\app\server\agent.py:107: UserWarning: [GEMINI_VIA_LITELLM] gemini/gemini-2.5-flash: You are using Gemini via LiteLLM. For better performance, reliability, and access to latest features, consider using Gemini directly through ADK's native Gemini integration. Replace LiteLlm(model='gemini/gemini-2.5-flash') with Gemini(model='gemini-2.5-flash'). Set ADK_SUPPRESS_GEMINI_LITELLM_WARNINGS=true to suppress this warning.
+  model=LiteLlm(model=LITELLM_MODEL),
+INFO:agent:A2UI_SCHEMA successfully loaded and wrapped in an array validator.
+INFO:agent:A2UI_SCHEMA successfully loaded and wrapped in an array validator.
+INFO:     Started server process [13552]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:10002 (Press CTRL+C to quit)
+INFO:     ::1:61287 - "OPTIONS /.well-known/agent-card.json HTTP/1.1" 200 OK
+INFO:     ::1:61287 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+INFO:     ::1:61287 - "OPTIONS / HTTP/1.1" 200 OK
+INFO:agent_executor:--- Client requested extensions: {'https://a2ui.org/a2a-extension/a2ui/v0.8'} ---
+INFO:agent_executor:--- AGENT_EXECUTOR: A2UI extension is active. Using UI agent. ---
+INFO:agent_executor:--- AGENT_EXECUTOR: Processing 1 message parts ---
+INFO:agent_executor:  Part 0: TextPart (text: Top 5 Chinese restaurants in New York.)
+INFO:agent_executor:No a2ui UI event part found. Falling back to text input.
+INFO:agent_executor:--- AGENT_EXECUTOR: Final query for LLM: 'Top 5 Chinese restaurants in New York.' ---
+INFO:agent:--- RestaurantAgent.stream: Attempt 1/2 for session 906fb6ca-66c8-40a5-bc24-4e5ef3b23700 ---
+09:13:01 - LiteLLM:INFO: utils.py:3748 - 
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
+INFO:agent:Event from runner: model_version='gemini-2.5-flash' content=Content(
+  parts=[
+    Part(
+      function_call=FunctionCall(
+        args={
+          'count': 5,
+          'cuisine': 'Chinese',
+          'location': 'New York'
+        },
+        id='call_973ce11abc58476687abf748720c__thought__CocDAXLI2nzaSmAIIvc19uExCqWf2+IVTFeYB+oyYVV6+ezhmms6cnoZu6q8eJN1wA6hjGKwvFA5/pJL2LTlliAyiKkRiFUyO0sJC1ddgg44zkVxa8RpPHpXEAcDWVBNRsT+lH9hy3en680H1FOplX01Wq3nYQi+5YXoCM5iYkd1bDo7sQu1NwT+DbW14ZsD9bdmO6mT+qzmm6g3OZNZYF5Uc6amqfJLFMK5OPJIzgO0a/SvDqtYQNBnMcMfE2egwxaxXRW9KqCYd4pLwxN+QVWyCgVPFsLKGMk/Nr/aEYzLbnfQhFwUg4rLPwtNxhjtiHBG5N84ngidJ7+vGpPv6tCUk7SOtJ9DftNd6gHwosuJXF5E8TQ/PA8IboYSoXfaV/93faWCsNYI2et/ufuEq7uMXUnF/RrzvVcrZqDPVOpsWWiJLSC0yldq1JXkRaj6PdslFaTVfWJPbvbeGNz7/14MiQQwODQ/VcS9cS+8/3484EGZYNVntLOun+lx4rEa3g+f1A1l4TpE4A==',
+        name='get_restaurants'
+      )
+    ),
+  ],
+  role='model'
+) grounding_metadata=None partial=False turn_complete=None finish_reason=<FinishReason.STOP: 'STOP'> error_code=None error_message=None interrupted=None custom_metadata=None usage_metadata=GenerateContentResponseUsageMetadata(
+  cached_content_token_count=0,
+  candidates_token_count=109,
+  prompt_token_count=11254,
+  total_token_count=11363
+) live_session_resumption_update=None input_transcription=None output_transcription=None avg_logprobs=None logprobs_result=None cache_metadata=None citation_metadata=None interaction_id=None invocation_id='e-9cdd0f4f-b7aa-41f9-a02f-515ae48aab4e' author='restaurant_agent' actions=EventActions(skip_summarization=None, state_delta={}, artifact_delta={}, transfer_to_agent=None, escalate=None, requested_auth_configs={}, requested_tool_confirmations={}, compaction=None, end_of_agent=None, agent_state=None, rewind_before_invocation_id=None) long_running_tool_ids=set() branch=None id='6c1de69c-d465-48c8-b196-e5cf764c4141' timestamp=1768230781.833395
+INFO:agent:Intermediate event: model_version='gemini-2.5-flash' content=Content(
+  parts=[
+    Part(
+      function_call=FunctionCall(
+        args={
+          'count': 5,
+          'cuisine': 'Chinese',
+          'location': 'New York'
+        },
+        id='call_973ce11abc58476687abf748720c__thought__CocDAXLI2nzaSmAIIvc19uExCqWf2+IVTFeYB+oyYVV6+ezhmms6cnoZu6q8eJN1wA6hjGKwvFA5/pJL2LTlliAyiKkRiFUyO0sJC1ddgg44zkVxa8RpPHpXEAcDWVBNRsT+lH9hy3en680H1FOplX01Wq3nYQi+5YXoCM5iYkd1bDo7sQu1NwT+DbW14ZsD9bdmO6mT+qzmm6g3OZNZYF5Uc6amqfJLFMK5OPJIzgO0a/SvDqtYQNBnMcMfE2egwxaxXRW9KqCYd4pLwxN+QVWyCgVPFsLKGMk/Nr/aEYzLbnfQhFwUg4rLPwtNxhjtiHBG5N84ngidJ7+vGpPv6tCUk7SOtJ9DftNd6gHwosuJXF5E8TQ/PA8IboYSoXfaV/93faWCsNYI2et/ufuEq7uMXUnF/RrzvVcrZqDPVOpsWWiJLSC0yldq1JXkRaj6PdslFaTVfWJPbvbeGNz7/14MiQQwODQ/VcS9cS+8/3484EGZYNVntLOun+lx4rEa3g+f1A1l4TpE4A==',
+        name='get_restaurants'
+      )
+    ),
+  ],
+  role='model'
+) grounding_metadata=None partial=False turn_complete=None finish_reason=<FinishReason.STOP: 'STOP'> error_code=None error_message=None interrupted=None custom_metadata=None usage_metadata=GenerateContentResponseUsageMetadata(
+  cached_content_token_count=0,
+  candidates_token_count=109,
+  prompt_token_count=11254,
+  total_token_count=11363
+) live_session_resumption_update=None input_transcription=None output_transcription=None avg_logprobs=None logprobs_result=None cache_metadata=None citation_metadata=None interaction_id=None invocation_id='e-9cdd0f4f-b7aa-41f9-a02f-515ae48aab4e' author='restaurant_agent' actions=EventActions(skip_summarization=None, state_delta={}, artifact_delta={}, transfer_to_agent=None, escalate=None, requested_auth_configs={}, requested_tool_confirmations={}, compaction=None, end_of_agent=None, agent_state=None, rewind_before_invocation_id=None) long_running_tool_ids=set() branch=None id='6c1de69c-d465-48c8-b196-e5cf764c4141' timestamp=1768230781.833395
+C:\Users\Cristopher Hdz\Desktop\Test\first-lit\app\server\.venv\Lib\site-packages\pydantic\main.py:464: UserWarning: Pydantic serializer warnings:
+  PydanticSerializationUnexpectedValue(Expected 10 fields but got 7: Expected `Message` - serialized value may not be as expected [field_name='message', input_value=Message(content=None, rol...4rEa3g+f1A1l4TpE4A==']}), input_type=Message])
+  PydanticSerializationUnexpectedValue(Expected `StreamingChoices` - serialized value may not be as expected [field_name='choices', input_value=Choices(finish_reason='to...rEa3g+f1A1l4TpE4A==']})), input_type=Choices])
+  return self.__pydantic_serializer__.to_python(
+C:\Users\Cristopher Hdz\Desktop\Test\first-lit\app\server\.venv\Lib\site-packages\google\adk\flows\llm_flows\base_llm_flow.py:449: UserWarning: [EXPERIMENTAL] feature FeatureName.PROGRESSIVE_SSE_STREAMING is enabled.
+  async for event in agen:
+INFO:tools:--- TOOL CALLED: get_restaurants (count: 5) ---
+INFO:tools:  - Cuisine: Chinese
+INFO:tools:  - Location: New York
+INFO:tools:Updated base URL from tool context: http://localhost:10002
+INFO:tools:  - Success: Found 8 restaurants, returning 5.
+INFO:agent:Event from runner: model_version=None content=Content(
+  parts=[
+    Part(
+      function_response=FunctionResponse(
+        id='call_973ce11abc58476687abf748720c__thought__CocDAXLI2nzaSmAIIvc19uExCqWf2+IVTFeYB+oyYVV6+ezhmms6cnoZu6q8eJN1wA6hjGKwvFA5/pJL2LTlliAyiKkRiFUyO0sJC1ddgg44zkVxa8RpPHpXEAcDWVBNRsT+lH9hy3en680H1FOplX01Wq3nYQi+5YXoCM5iYkd1bDo7sQu1NwT+DbW14ZsD9bdmO6mT+qzmm6g3OZNZYF5Uc6amqfJLFMK5OPJIzgO0a/SvDqtYQNBnMcMfE2egwxaxXRW9KqCYd4pLwxN+QVWyCgVPFsLKGMk/Nr/aEYzLbnfQhFwUg4rLPwtNxhjtiHBG5N84ngidJ7+vGpPv6tCUk7SOtJ9DftNd6gHwosuJXF5E8TQ/PA8IboYSoXfaV/93faWCsNYI2et/ufuEq7uMXUnF/RrzvVcrZqDPVOpsWWiJLSC0yldq1JXkRaj6PdslFaTVfWJPbvbeGNz7/14MiQQwODQ/VcS9cS+8/3484EGZYNVntLOun+lx4rEa3g+f1A1l4TpE4A==',
+        name='get_restaurants',
+        response={
+          'result': '[{"name": "Xi\'an Famous Foods", "detail": "Spicy and savory hand-pulled noodles.", "imageUrl": "http://localhost:10002/static/shrimpchowmein.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://www.xianfoods.com/)", "address": "81 St Marks Pl, New York, NY 10003"}, {"name": "Han Dynasty", "detail": "Authentic Szechuan cuisine.", "imageUrl": "http://localhost:10002/static/mapotofu.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://www.handynasty.net/)", "address": "90 3rd Ave, New York, NY 10003"}, {"name": "RedFarm", "detail": "Modern Chinese with a farm-to-table approach.", "imageUrl": "http://localhost:10002/static/beefbroccoli.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://www.redfarmnyc.com/)", "address": "529 Hudson St, New York, NY 10014"}, {"name": "Mott 32", "detail": "Upscale Cantonese dining.", "imageUrl": "http://localhost:10002/static/springrolls.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026", "infoLink": "[More Info](https://mott32.com/newyork/)", "address": "111 W 57th St, New York, NY 10019"}, {"name": "Hwa Yuan Szechuan", "detail": "Famous for its cold noodles with sesame sauce.", "imageUrl": "http://localhost:10002/static/kungpao.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://hwayuannyc.com/)", "address": "40 E Broadway, New York, NY 10002"}]'
+        }
+      )
+    ),
+  ],
+  role='user'
+) grounding_metadata=None partial=None turn_complete=None finish_reason=None error_code=None error_message=None interrupted=None custom_metadata=None usage_metadata=None live_session_resumption_update=None input_transcription=None output_transcription=None avg_logprobs=None logprobs_result=None cache_metadata=None citation_metadata=None interaction_id=None invocation_id='e-9cdd0f4f-b7aa-41f9-a02f-515ae48aab4e' author='restaurant_agent' actions=EventActions(skip_summarization=None, state_delta={}, artifact_delta={}, transfer_to_agent=None, escalate=None, requested_auth_configs={}, requested_tool_confirmations={}, compaction=None, end_of_agent=None, agent_state=None, rewind_before_invocation_id=None) long_running_tool_ids=None branch=None id='9dac24d7-8be7-4e5d-b8dd-d9cfb019bba4' timestamp=1768230786.006242
+INFO:agent:Intermediate event: model_version=None content=Content(
+  parts=[
+    Part(
+      function_response=FunctionResponse(
+        id='call_973ce11abc58476687abf748720c__thought__CocDAXLI2nzaSmAIIvc19uExCqWf2+IVTFeYB+oyYVV6+ezhmms6cnoZu6q8eJN1wA6hjGKwvFA5/pJL2LTlliAyiKkRiFUyO0sJC1ddgg44zkVxa8RpPHpXEAcDWVBNRsT+lH9hy3en680H1FOplX01Wq3nYQi+5YXoCM5iYkd1bDo7sQu1NwT+DbW14ZsD9bdmO6mT+qzmm6g3OZNZYF5Uc6amqfJLFMK5OPJIzgO0a/SvDqtYQNBnMcMfE2egwxaxXRW9KqCYd4pLwxN+QVWyCgVPFsLKGMk/Nr/aEYzLbnfQhFwUg4rLPwtNxhjtiHBG5N84ngidJ7+vGpPv6tCUk7SOtJ9DftNd6gHwosuJXF5E8TQ/PA8IboYSoXfaV/93faWCsNYI2et/ufuEq7uMXUnF/RrzvVcrZqDPVOpsWWiJLSC0yldq1JXkRaj6PdslFaTVfWJPbvbeGNz7/14MiQQwODQ/VcS9cS+8/3484EGZYNVntLOun+lx4rEa3g+f1A1l4TpE4A==',
+        name='get_restaurants',
+        response={
+          'result': '[{"name": "Xi\'an Famous Foods", "detail": "Spicy and savory hand-pulled noodles.", "imageUrl": "http://localhost:10002/static/shrimpchowmein.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://www.xianfoods.com/)", "address": "81 St Marks Pl, New York, NY 10003"}, {"name": "Han Dynasty", "detail": "Authentic Szechuan cuisine.", "imageUrl": "http://localhost:10002/static/mapotofu.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://www.handynasty.net/)", "address": "90 3rd Ave, New York, NY 10003"}, {"name": "RedFarm", "detail": "Modern Chinese with a farm-to-table approach.", "imageUrl": "http://localhost:10002/static/beefbroccoli.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://www.redfarmnyc.com/)", "address": "529 Hudson St, New York, NY 10014"}, {"name": "Mott 32", "detail": "Upscale Cantonese dining.", "imageUrl": "http://localhost:10002/static/springrolls.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026", "infoLink": "[More Info](https://mott32.com/newyork/)", "address": "111 W 57th St, New York, NY 10019"}, {"name": "Hwa Yuan Szechuan", "detail": "Famous for its cold noodles with sesame sauce.", "imageUrl": "http://localhost:10002/static/kungpao.jpeg", "rating": "\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2026\\u00e2\\u02dc\\u2020", "infoLink": "[More Info](https://hwayuannyc.com/)", "address": "40 E Broadway, New York, NY 10002"}]'
+        }
+      )
+    ),
+  ],
+  role='user'
+) grounding_metadata=None partial=None turn_complete=None finish_reason=None error_code=None error_message=None interrupted=None custom_metadata=None usage_metadata=None live_session_resumption_update=None input_transcription=None output_transcription=None avg_logprobs=None logprobs_result=None cache_metadata=None citation_metadata=None interaction_id=None invocation_id='e-9cdd0f4f-b7aa-41f9-a02f-515ae48aab4e' author='restaurant_agent' actions=EventActions(skip_summarization=None, state_delta={}, artifact_delta={}, transfer_to_agent=None, escalate=None, requested_auth_configs={}, requested_tool_confirmations={}, compaction=None, end_of_agent=None, agent_state=None, rewind_before_invocation_id=None) long_running_tool_ids=None branch=None id='9dac24d7-8be7-4e5d-b8dd-d9cfb019bba4' timestamp=1768230786.006242
+09:13:06 - LiteLLM:INFO: utils.py:3748 -
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
+INFO:agent:Event from runner: model_version='gemini-2.5-flash' content=Content(
+  parts=[
+    Part(
+      text="""Here are the top 5 Chinese restaurants in New York:
+---a2ui_JSON---
+[
+  { "beginRendering": { "surfaceId": "default", "root": "root-column", "styles": { "primaryColor": "#FF0000", "font": "Roboto" } } },
+  { "surfaceUpdate": {
+    "surfaceId": "default",
+    "components": [
+      { "id": "root-column", "component": { "Column": { "children": { "explicitList": ["title-heading", "item-list"] } } } },
+      { "id": "title-heading", "component": { "Text": { "usageHint": "h1", "text": { "path": "title" } } } },
+      { "id": "item-list", "component": { "List": { "direction": "vertical", "children": { "template": { "componentId": "item-card-template", "dataBinding": "/items" } } } } },
+      { "id": "item-card-template", "component": { "Card": { "child": "card-layout" } } },
+      { "id": "card-layout", "component": { "Row": { "children": { "explicitList": ["template-image", "card-details"] } } } },
+      { "id": "template-image", "weight": 1, "component": { "Image": { "url": { "path": "imageUrl" } } } },
+      { "id": "card-details", "weight": 2, "component": { "Column": { "children": { "explicitList": ["template-name", "template-rating", "template-detail", "template-link", "template-book-button"] } } } },        
+      { "id": "template-name", "component": { "Text": { "usageHint": "h3", "text": { "path": "name" } } } },
+      { "id": "template-rating", "component": { "Text": { "text": { "path": "rating" } } } },
+      { "id": "template-detail", "component": { "Text": { "text": { "path": "detail" } } } },
+      { "id": "template-link", "component": { "Text": { "text": { "path": "infoLink" } } } },
+      { "id": "template-book-button", "component": { "Button": { "child": "book-now-text", "primary": true, "action": { "name": "book_restaurant", "context": [ { "key": "restaurantName", "value": { "path": "name" } }, { "key": "imageUrl", "value": { "path": "imageUrl" } }, { "key": "address", "value": { "path": "address" } } ] } } } },
+      { "id": "book-now-text", "component": { "Text": { "text": { "literalString": "Book Now" } } } }
+    ]
+  } },
+  { "dataModelUpdate": {
+    "surfaceId": "default",
+    "path": "/",
+    "contents": [
+      { "key": "title", "valueString": "Top 5 Chinese restaurants in New York" },
+      { "key": "items", "valueMap": [
+        { "key": "item1", "valueMap": [
+          { "key": "name", "valueString": "Xi'an Famous Foods" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Spicy and savory hand-pulled noodles." },
+          { "key": "infoLink", "valueString": "[More Info](https://www.xianfoods.com/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/shrimpchowmein.jpeg" },
+          { "key": "address", "valueString": "81 St Marks Pl, New York, NY 10003" }
+        ] },
+        { "key": "item2", "valueMap": [
+          { "key": "name", "valueString": "Han Dynasty" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Authentic Szechuan cuisine." },
+          { "key": "infoLink", "valueString": "[More Info](https://www.handynasty.net/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/mapotofu.jpeg" },
+          { "key": "address", "valueString": "90 3rd Ave, New York, NY 10003" }
+        ] },
+        { "key": "item3", "valueMap": [
+          { "key": "name", "valueString": "RedFarm" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Modern Chinese with a farm-to-table approach." },
+          { "key": "infoLink", "valueString": "[More Info](https://www.redfarmnyc.com/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/beefbroccoli.jpeg" },
+          { "key": "address", "valueString": "529 Hudson St, New York, NY 10014" }
+        ] },
+        { "key": "item4", "valueMap": [
+          { "key": "name", "valueString": "Mott 32" },
+          { "key": "rating", "valueString": "★★★★★" },
+          { "key": "detail", "valueString": "Upscale Cantonese dining." },
+          { "key": "infoLink", "valueString": "[More Info](https://mott32.com/newyork/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/springrolls.jpeg" },
+          { "key": "address", "valueString": "111 W 57th St, New York, NY 10019" }
+        ] },
+        { "key": "item5", "valueMap": [
+          { "key": "name", "valueString": "Hwa Yuan Szechuan" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Famous for its cold noodles with sesame sauce." },
+          { "key": "infoLink", "valueString": "[More Info](https://hwayuannyc.com/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/kungpao.jpeg" },
+          { "key": "address", "valueString": "40 E Broadway, New York, NY 10002" }
+        ] }
+      ] }
+    ]
+  } }
+]"""
+    ),
+  ],
+  role='model'
+) grounding_metadata=None partial=False turn_complete=None finish_reason=<FinishReason.STOP: 'STOP'> error_code=None error_message=None interrupted=None custom_metadata=None usage_metadata=GenerateContentResponseUsageMetadata(
+  cached_content_token_count=10807,
+  candidates_token_count=3080,
+  prompt_token_count=12189,
+  total_token_count=15269
+) live_session_resumption_update=None input_transcription=None output_transcription=None avg_logprobs=None logprobs_result=None cache_metadata=None citation_metadata=None interaction_id=None invocation_id='e-9cdd0f4f-b7aa-41f9-a02f-515ae48aab4e' author='restaurant_agent' actions=EventActions(skip_summarization=None, state_delta={}, artifact_delta={}, transfer_to_agent=None, escalate=None, requested_auth_configs={}, requested_tool_confirmations={}, compaction=None, end_of_agent=None, agent_state=None, rewind_before_invocation_id=None) long_running_tool_ids=None branch=None id='4bb6fd81-0153-45a8-abac-5ab92485ad84' timestamp=1768230786.009032
+C:\Users\Cristopher Hdz\Desktop\Test\first-lit\app\server\.venv\Lib\site-packages\pydantic\main.py:464: UserWarning: Pydantic serializer warnings:
+  PydanticSerializationUnexpectedValue(Expected 10 fields but got 7: Expected `Message` - serialized value may not be as expected [field_name='message', input_value=Message(content='Here are...9UefrWhDt+vHP81rhGU=']}), input_type=Message])
+  PydanticSerializationUnexpectedValue(Expected `StreamingChoices` - serialized value may not be as expected [field_name='choices', input_value=Choices(finish_reason='st...UefrWhDt+vHP81rhGU=']})), input_type=Choices])
+  return self.__pydantic_serializer__.to_python(
+INFO:agent:--- RestaurantAgent.stream: Validating UI response (Attempt 1)... ---
+INFO:agent:--- RestaurantAgent.stream: Validating against A2UI_SCHEMA... ---
+INFO:agent:--- RestaurantAgent.stream: UI JSON successfully parsed AND validated against schema. Validation OK (Attempt 1). ---
+INFO:agent:--- RestaurantAgent.stream: Response is valid. Sending final response (Attempt 1). ---
+INFO:agent:Final response: Here are the top 5 Chinese restaurants in New York:
+---a2ui_JSON---
+[
+  { "beginRendering": { "surfaceId": "default", "root": "root-column", "styles": { "primaryColor": "#FF0000", "font": "Roboto" } } },
+  { "surfaceUpdate": {
+    "surfaceId": "default",
+    "components": [
+      { "id": "root-column", "component": { "Column": { "children": { "explicitList": ["title-heading", "item-list"] } } } },
+      { "id": "title-heading", "component": { "Text": { "usageHint": "h1", "text": { "path": "title" } } } },
+      { "id": "item-list", "component": { "List": { "direction": "vertical", "children": { "template": { "componentId": "item-card-template", "dataBinding": "/items" } } } } },
+      { "id": "item-card-template", "component": { "Card": { "child": "card-layout" } } },
+      { "id": "card-layout", "component": { "Row": { "children": { "explicitList": ["template-image", "card-details"] } } } },
+      { "id": "template-image", "weight": 1, "component": { "Image": { "url": { "path": "imageUrl" } } } },
+      { "id": "card-details", "weight": 2, "component": { "Column": { "children": { "explicitList": ["template-name", "template-rating", "template-detail", "template-link", "template-book-button"] } } } },        
+      { "id": "template-name", "component": { "Text": { "usageHint": "h3", "text": { "path": "name" } } } },
+      { "id": "template-rating", "component": { "Text": { "text": { "path": "rating" } } } },
+      { "id": "template-detail", "component": { "Text": { "text": { "path": "detail" } } } },
+      { "id": "template-link", "component": { "Text": { "text": { "path": "infoLink" } } } },
+      { "id": "template-book-button", "component": { "Button": { "child": "book-now-text", "primary": true, "action": { "name": "book_restaurant", "context": [ { "key": "restaurantName", "value": { "path": "name" } }, { "key": "imageUrl", "value": { "path": "imageUrl" } }, { "key": "address", "value": { "path": "address" } } ] } } } },
+      { "id": "book-now-text", "component": { "Text": { "text": { "literalString": "Book Now" } } } }
+    ]
+  } },
+  { "dataModelUpdate": {
+    "surfaceId": "default",
+    "path": "/",
+    "contents": [
+      { "key": "title", "valueString": "Top 5 Chinese restaurants in New York" },
+      { "key": "items", "valueMap": [
+        { "key": "item1", "valueMap": [
+          { "key": "name", "valueString": "Xi'an Famous Foods" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Spicy and savory hand-pulled noodles." },
+          { "key": "infoLink", "valueString": "[More Info](https://www.xianfoods.com/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/shrimpchowmein.jpeg" },
+          { "key": "address", "valueString": "81 St Marks Pl, New York, NY 10003" }
+        ] },
+        { "key": "item2", "valueMap": [
+          { "key": "name", "valueString": "Han Dynasty" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Authentic Szechuan cuisine." },
+          { "key": "infoLink", "valueString": "[More Info](https://www.handynasty.net/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/mapotofu.jpeg" },
+          { "key": "address", "valueString": "90 3rd Ave, New York, NY 10003" }
+        ] },
+        { "key": "item3", "valueMap": [
+          { "key": "name", "valueString": "RedFarm" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Modern Chinese with a farm-to-table approach." },
+          { "key": "infoLink", "valueString": "[More Info](https://www.redfarmnyc.com/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/beefbroccoli.jpeg" },
+          { "key": "address", "valueString": "529 Hudson St, New York, NY 10014" }
+        ] },
+        { "key": "item4", "valueMap": [
+          { "key": "name", "valueString": "Mott 32" },
+          { "key": "rating", "valueString": "★★★★★" },
+          { "key": "detail", "valueString": "Upscale Cantonese dining." },
+          { "key": "infoLink", "valueString": "[More Info](https://mott32.com/newyork/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/springrolls.jpeg" },
+          { "key": "address", "valueString": "111 W 57th St, New York, NY 10019" }
+        ] },
+        { "key": "item5", "valueMap": [
+          { "key": "name", "valueString": "Hwa Yuan Szechuan" },
+          { "key": "rating", "valueString": "★★★★☆" },
+          { "key": "detail", "valueString": "Famous for its cold noodles with sesame sauce." },
+          { "key": "infoLink", "valueString": "[More Info](https://hwayuannyc.com/)" },
+          { "key": "imageUrl", "valueString": "http://localhost:10002/static/kungpao.jpeg" },
+          { "key": "address", "valueString": "40 E Broadway, New York, NY 10002" }
+        ] }
+      ] }
+    ]
+  } }
+]
+INFO:agent_executor:Splitting final response into text and UI parts.
+INFO:agent_executor:Found 3 messages. Creating individual DataParts.
+INFO:agent_executor:--- FINAL PARTS TO BE SENT ---
+INFO:agent_executor:  - Part 0: Type = <class 'a2a.types.TextPart'>
+INFO:agent_executor:    - Text: Here are the top 5 Chinese restaurants in New York:...
+INFO:agent_executor:  - Part 1: Type = <class 'a2a.types.DataPart'>
+INFO:agent_executor:    - Data: {'beginRendering': {'surfaceId': 'default', 'root': 'root-column', 'styles': {'primaryColor': '#FF0000', 'font': 'Roboto'}}}...
+INFO:agent_executor:  - Part 2: Type = <class 'a2a.types.DataPart'>
+INFO:agent_executor:    - Data: {'surfaceUpdate': {'surfaceId': 'default', 'components': [{'id': 'root-column', 'component': {'Column': {'children': {'explicitList': ['title-heading', 'item-list']}}}}, {'id': 'title-heading', 'compo...
+INFO:agent_executor:  - Part 3: Type = <class 'a2a.types.DataPart'>
+INFO:agent_executor:    - Data: {'dataModelUpdate': {'surfaceId': 'default', 'path': '/', 'contents': [{'key': 'title', 'valueString': 'Top 5 Chinese restaurants in New York'}, {'key': 'items', 'valueMap': [{'key': 'item1', 'valueMa...
+INFO:agent_executor:-----------------------------
+INFO:     ::1:61287 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:62149 - "GET /static/shrimpchowmein.jpeg HTTP/1.1" 304 Not Modified
+INFO:     ::1:52796 - "GET /static/mapotofu.jpeg HTTP/1.1" 304 Not Modified
+INFO:     ::1:62233 - "GET /static/beefbroccoli.jpeg HTTP/1.1" 304 Not Modified
+INFO:     ::1:61600 - "GET /static/kungpao.jpeg HTTP/1.1" 304 Not Modified
+INFO:     ::1:63480 - "GET /static/springrolls.jpeg HTTP/1.1" 304 Not Modified
+INFO:agent_executor:--- Client requested extensions: {'https://a2ui.org/a2a-extension/a2ui/v0.8'} ---
+INFO:agent_executor:--- AGENT_EXECUTOR: A2UI extension is active. Using UI agent. ---
+INFO:agent_executor:--- AGENT_EXECUTOR: Processing 1 message parts ---
+INFO:agent_executor:  Part 0: Found a2ui UI ClientEvent payload.
+INFO:agent_executor:Received a2ui ClientEvent: {'name': 'book_restaurant', 'surfaceId': 'default', 'sourceComponentId': 'template-book-button:item1', 'timestamp': '2026-01-12T15:14:18.850Z', 'context': {'restaurantName': "Xi'an Famous Foods", 'imageUrl': 'http://localhost:10002/static/shrimpchowmein.jpeg', 'address': '81 St Marks Pl, New York, NY 10003'}}
+INFO:agent_executor:--- AGENT_EXECUTOR: Final query for LLM: 'User submitted an event: None with data: {'restaurantName': "Xi'an Famous Foods", 'imageUrl': 'http://localhost:10002/static/shrimpchowmein.jpeg', 'address': '81 St Marks Pl, New York, NY 10003'}' ---
+INFO:agent:--- RestaurantAgent.stream: Attempt 1/2 for session 11c138b9-eba0-45e6-87c6-5952c209f033 ---
+09:14:18 - LiteLLM:INFO: utils.py:3748 -
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
+INFO:agent:Event from runner: model_version='gemini-2.5-flash' content=Content(
+  parts=[
+    Part(
+      text="""---a2ui_JSON---
+[
+  { "beginRendering": { "surfaceId": "booking-form", "root": "booking-form-column", "styles": { "primaryColor": "#FF0000", "font": "Roboto" } } },
+  { "surfaceUpdate": {
+    "surfaceId": "booking-form",
+    "components": [
+      { "id": "booking-form-column", "component": { "Column": { "children": { "explicitList": ["booking-title", "restaurant-image", "restaurant-address", "party-size-field", "datetime-field", "dietary-field", "submit-button"] } } } },
+      { "id": "booking-title", "component": { "Text": { "usageHint": "h2", "text": { "path": "title" } } } },
+      { "id": "restaurant-image", "component": { "Image": { "url": { "path": "imageUrl" } } } },
+      { "id": "restaurant-address", "component": { "Text": { "text": { "path": "address" } } } },
+      { "id": "party-size-field", "component": { "TextField": { "label": { "literalString": "Party Size" }, "text": { "path": "partySize" }, "type": "number" } } },
+      { "id": "datetime-field", "component": { "DateTimeInput": { "label": { "literalString": "Date & Time" }, "value": { "path": "reservationTime" }, "enableDate": true, "enableTime": true } } },
+      { "id": "dietary-field", "component": { "TextField": { "label": { "literalString": "Dietary Requirements" }, "text": { "path": "dietary" } } } },
+      { "id": "submit-button", "component": { "Button": { "child": "submit-reservation-text", "action": { "name": "submit_booking", "context": [ { "key": "restaurantName", "value": { "path": "restaurantName" } }, { "key": "partySize", "value": { "path": "partySize" } }, { "key": "reservationTime", "value": { "path": "reservationTime" } }, { "key": "dietary", "value": { "path": "dietary" } }, { "key": "imageUrl", "value": { "path": "imageUrl" } } ] } } } },
+      { "id": "submit-reservation-text", "component": { "Text": { "text": { "literalString": "Submit Reservation" } } } }
+    ]
+  } },
+  { "dataModelUpdate": {
+    "surfaceId": "booking-form",
+    "path": "/",
+    "contents": [
+      { "key": "title", "valueString": "Book a Table at Xi'an Famous Foods" },
+      { "key": "address", "valueString": "81 St Marks Pl, New York, NY 10003" },
+      { "key": "restaurantName", "valueString": "Xi'an Famous Foods" },
+      { "key": "partySize", "valueString": "2" },
+      { "key": "reservationTime", "valueString": "" },
+      { "key": "dietary", "valueString": "" },
+      { "key": "imageUrl", "valueString": "http://localhost:10002/static/shrimpchowmein.jpeg" }
+    ]
+  } }
+]"""
+    ),
+  ],
+  role='model'
+) grounding_metadata=None partial=False turn_complete=None finish_reason=<FinishReason.STOP: 'STOP'> error_code=None error_message=None interrupted=None custom_metadata=None usage_metadata=GenerateContentResponseUsageMetadata(
+  cached_content_token_count=0,
+  candidates_token_count=998,
+  prompt_token_count=11309,
+  total_token_count=12307
+) live_session_resumption_update=None input_transcription=None output_transcription=None avg_logprobs=None logprobs_result=None cache_metadata=None citation_metadata=None interaction_id=None invocation_id='e-e4c42af7-6e6c-4738-9d7b-fc36364a67ab' author='restaurant_agent' actions=EventActions(skip_summarization=None, state_delta={}, artifact_delta={}, transfer_to_agent=None, escalate=None, requested_auth_configs={}, requested_tool_confirmations={}, compaction=None, end_of_agent=None, agent_state=None, rewind_before_invocation_id=None) long_running_tool_ids=None branch=None id='95f4fc22-9af6-4e0f-9353-ca51dfb5ce8d' timestamp=1768230858.860433
+C:\Users\Cristopher Hdz\Desktop\Test\first-lit\app\server\.venv\Lib\site-packages\pydantic\main.py:464: UserWarning: Pydantic serializer warnings:
+  PydanticSerializationUnexpectedValue(Expected 10 fields but got 7: Expected `Message` - serialized value may not be as expected [field_name='message', input_value=Message(content='---a2ui_...aKtAw+Ta5esFJ5ITLrk=']}), input_type=Message])
+  PydanticSerializationUnexpectedValue(Expected `StreamingChoices` - serialized value may not be as expected [field_name='choices', input_value=Choices(finish_reason='st...KtAw+Ta5esFJ5ITLrk=']})), input_type=Choices])
+  return self.__pydantic_serializer__.to_python(
+INFO:agent:--- RestaurantAgent.stream: Validating UI response (Attempt 1)... ---
+INFO:agent:--- RestaurantAgent.stream: Validating against A2UI_SCHEMA... ---
+INFO:agent:--- RestaurantAgent.stream: UI JSON successfully parsed AND validated against schema. Validation OK (Attempt 1). ---
+INFO:agent:--- RestaurantAgent.stream: Response is valid. Sending final response (Attempt 1). ---
+INFO:agent:Final response: ---a2ui_JSON---
+[
+  { "beginRendering": { "surfaceId": "booking-form", "root": "booking-form-column", "styles": { "primaryColor": "#FF0000", "font": "Roboto" } } },
+  { "surfaceUpdate": {
+    "surfaceId": "booking-form",
+    "components": [
+      { "id": "booking-form-column", "component": { "Column": { "children": { "explicitList": ["booking-title", "restaurant-image", "restaurant-address", "party-size-field", "datetime-field", "dietary-field", "submit-button"] } } } },
+      { "id": "booking-title", "component": { "Text": { "usageHint": "h2", "text": { "path": "title" } } } },
+      { "id": "restaurant-image", "component": { "Image": { "url": { "path": "imageUrl" } } } },
+      { "id": "restaurant-address", "component": { "Text": { "text": { "path": "address" } } } },
+      { "id": "party-size-field", "component": { "TextField": { "label": { "literalString": "Party Size" }, "text": { "path": "partySize" }, "type": "number" } } },
+      { "id": "datetime-field", "component": { "DateTimeInput": { "label": { "literalString": "Date & Time" }, "value": { "path": "reservationTime" }, "enableDate": true, "enableTime": true } } },
+      { "id": "dietary-field", "component": { "TextField": { "label": { "literalString": "Dietary Requirements" }, "text": { "path": "dietary" } } } },
+      { "id": "submit-button", "component": { "Button": { "child": "submit-reservation-text", "action": { "name": "submit_booking", "context": [ { "key": "restaurantName", "value": { "path": "restaurantName" } }, { "key": "partySize", "value": { "path": "partySize" } }, { "key": "reservationTime", "value": { "path": "reservationTime" } }, { "key": "dietary", "value": { "path": "dietary" } }, { "key": "imageUrl", "value": { "path": "imageUrl" } } ] } } } },
+      { "id": "submit-reservation-text", "component": { "Text": { "text": { "literalString": "Submit Reservation" } } } }
+    ]
+  } },
+  { "dataModelUpdate": {
+    "surfaceId": "booking-form",
+    "path": "/",
+    "contents": [
+      { "key": "title", "valueString": "Book a Table at Xi'an Famous Foods" },
+      { "key": "address", "valueString": "81 St Marks Pl, New York, NY 10003" },
+      { "key": "restaurantName", "valueString": "Xi'an Famous Foods" },
+      { "key": "partySize", "valueString": "2" },
+      { "key": "reservationTime", "valueString": "" },
+      { "key": "dietary", "valueString": "" },
+      { "key": "imageUrl", "valueString": "http://localhost:10002/static/shrimpchowmein.jpeg" }
+    ]
+  } }
+]
+INFO:agent_executor:Splitting final response into text and UI parts.
+INFO:agent_executor:Found 3 messages. Creating individual DataParts.
+INFO:agent_executor:--- FINAL PARTS TO BE SENT ---
+INFO:agent_executor:  - Part 0: Type = <class 'a2a.types.DataPart'>
+INFO:agent_executor:    - Data: {'beginRendering': {'surfaceId': 'booking-form', 'root': 'booking-form-column', 'styles': {'primaryColor': '#FF0000', 'font': 'Roboto'}}}...
+INFO:agent_executor:  - Part 1: Type = <class 'a2a.types.DataPart'>
+INFO:agent_executor:    - Data: {'surfaceUpdate': {'surfaceId': 'booking-form', 'components': [{'id': 'booking-form-column', 'component': {'Column': {'children': {'explicitList': ['booking-title', 'restaurant-image', 'restaurant-add...
+INFO:agent_executor:  - Part 2: Type = <class 'a2a.types.DataPart'>
+INFO:agent_executor:    - Data: {'dataModelUpdate': {'surfaceId': 'booking-form', 'path': '/', 'contents': [{'key': 'title', 'valueString': "Book a Table at Xi'an Famous Foods"}, {'key': 'address', 'valueString': '81 St Marks Pl, Ne...
+INFO:agent_executor:-----------------------------
+INFO:     ::1:64063 - "POST / HTTP/1.1" 200 OK
+INFO:agent_executor:--- Client requested extensions: {'https://a2ui.org/a2a-extension/a2ui/v0.8'} ---
+INFO:agent_executor:--- AGENT_EXECUTOR: A2UI extension is active. Using UI agent. ---
+INFO:agent_executor:--- AGENT_EXECUTOR: Processing 1 message parts ---
+INFO:agent_executor:  Part 0: Found a2ui UI ClientEvent payload.
+INFO:agent_executor:Received a2ui ClientEvent: {'name': 'submit_booking', 'surfaceId': 'booking-form', 'sourceComponentId': 'submit-button', 'timestamp': '2026-01-12T15:14:41.520Z', 'context': {'restaurantName': "Xi'an Famous Foods", 'partySize': '2', 'reservationTime': '2026-01-13T09:14', 'dietary': 'Vegetables no', 'imageUrl': 'http://localhost:10002/static/shrimpchowmein.jpeg'}}
+INFO:agent_executor:--- AGENT_EXECUTOR: Final query for LLM: 'User submitted an event: None with data: {'restaurantName': "Xi'an Famous Foods", 'partySize': '2', 'reservationTime': '2026-01-13T09:14', 'dietary': 'Vegetables no', 'imageUrl': 'http://localhost:10002/static/shrimpchowmein.jpeg'}' ---
+INFO:agent:--- RestaurantAgent.stream: Attempt 1/2 for session a32595be-1edb-4c5d-b6ce-bdd8633151c9 ---
+09:14:41 - LiteLLM:INFO: utils.py:3748 -
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
+INFO:LiteLLM:
+LiteLLM completion() model= gemini-2.5-flash; provider = gemini
