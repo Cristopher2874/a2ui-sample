@@ -1,102 +1,107 @@
 import { LitElement, html, css } from "lit"
-import { customElement, state } from "lit/decorators.js"
+import { customElement, property, state } from "lit/decorators.js"
 
-@customElement("chat-input")
-export class ChatInput extends LitElement {
+@customElement("chat-module")
+export class ChatModule extends LitElement {
+  @property({ type: String })
+  accessor title = ""
+
+  @property({ type: String })
+  accessor subtitle = ""
+
+  @property({ type: String })
+  accessor color = "#334155"
+
+  @property({ type: String })
+  accessor query = ""
+
   @state()
-  accessor #inputValue = ""
+  accessor response = ""
+
+  @state()
+  accessor status = "Ready"
 
   static styles = css`
     :host {
       display: block;
-    }
-
-    .input-container {
+      border-radius: 1rem;
+      padding: 2rem;
+      color: white;
       display: flex;
-      gap: 1rem;
-      align-items: center;
+      flex-direction: column;
     }
 
-    input {
-      flex: 1;
-      padding: 1rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 2rem;
-      background: #334155;
-      color: white;
-      outline: none;
-      font-family: 'Inter', sans-serif;
-    }
-
-    input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
-
-    button {
-      width: 3.5rem;
-      height: 3.5rem;
-      border-radius: 50%;
-      background: #6366f1;
-      border: none;
-      color: white;
+    .title {
       font-size: 1.25rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
     }
 
-    button:hover {
-      background: #4f46e5;
+    .subtitle {
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
     }
 
-    button:active {
-      transform: scale(0.95);
+    .response {
+      flex: 1;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 0.5rem;
+      overflow-y: auto;
+    }
+
+    .status {
+      font-size: 0.875rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
     }
   `
 
-  private handleSubmit() {
-    if (this.#inputValue.trim()) {
-      console.log("[v0] Submitting query:", this.#inputValue)
-      this.dispatchEvent(
-        new CustomEvent("query-submit", {
-          detail: { query: this.#inputValue },
-          bubbles: true,
-          composed: true,
-        }),
-      )
-      this.#inputValue = ""
+  updated(changedProperties: Map<string, any>) {
+    if (changedProperties.has("query") && this.query) {
+      this.handleQuery()
     }
   }
 
-  private handleKeyPress(e: KeyboardEvent) {
-    if (e.key === "Enter") {
-      this.handleSubmit()
-    }
+  private async handleQuery() {
+    this.status = "Processing..."
+    this.response = `Processing query: "${this.query}"`
+
+    // Simulate async processing
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    this.response = `Response to "${this.query}": This is a simulated response from ${this.title}. The query has been processed successfully.`
+    this.status = "Complete"
   }
 
   render() {
+    return [
+      this.#mainDynamicRegion(),
+    ]
+  }
+
+  #mainDynamicRegion () {
     return html`
-      <div class="input-container">
-        <input
-          type="text"
-          .value=${this.#inputValue}
-          @input=${(e: Event) => (this.#inputValue = (e.target as HTMLInputElement).value)}
-          @keypress=${this.handleKeyPress}
-          placeholder="Top 5 Chinese restaurants in New York"
-        />
-        <button @click=${this.handleSubmit}>
-          ▶
-        </button>
-      </div>
-    `
+      <style>
+        :host {
+          background: ${this.color};
+        }
+      </style>
+      <div class="title">${this.title}</div>
+      ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
+      <div class="response">${this.response || "Waiting for query..."}</div>
+      <div class="status">Status: ${this.status}</div>
+    `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    "chat-input": ChatInput
+    "chat-module": ChatModule
   }
 }

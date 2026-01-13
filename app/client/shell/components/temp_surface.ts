@@ -308,7 +308,7 @@ export class A2UILayoutEditor extends SignalWatcher(LitElement) {
 
   render() {
     return [
-      this.#renderThemeToggle(),
+    //   this.#renderThemeToggle(),
       this.#maybeRenderForm(),
       this.#maybeRenderData(),
       this.#maybeRenderError(),

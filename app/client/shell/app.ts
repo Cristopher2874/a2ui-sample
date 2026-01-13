@@ -1,8 +1,9 @@
 import { LitElement, html, css } from "lit"
 import { customElement, state } from "lit/decorators.js"
 import "./components/main_static"
-import "./components/main_chat"
+import "./components/chatTextArea"
 import "./components/main_surface"
+import "./components/main_chat"
 
 @customElement("app-container")
 export class AppContainer extends LitElement {
@@ -15,7 +16,7 @@ export class AppContainer extends LitElement {
       flex-direction: column;
       width: 100%;
       height: 100%;
-      overflow: hidden;
+      overflow: auto;
       background: #1a2332;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
@@ -39,13 +40,7 @@ export class AppContainer extends LitElement {
       grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
       flex: 1;
-      min-height: 0;
-    }
-
-    .chat-bar {
-      color: white;
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
+      width: 100%;
     }
   `
 
@@ -76,11 +71,11 @@ export class AppContainer extends LitElement {
             color="#f87171"
             .query=${this.query}>
           </chat-module>
-          <chat-module 
+          <dynamic-module 
             title="Sample application for A2UI"
             color="#334155"
             .query=${this.query}>
-          </chat-module>
+          </dynamic-module>
         </div>
         <chat-input @query-submit=${this.handleQuerySubmit}></chat-input>
       </div>

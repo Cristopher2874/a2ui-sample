@@ -1,8 +1,9 @@
 import { LitElement, html, css } from "lit"
 import { customElement, property, state } from "lit/decorators.js"
+import './temp_surface.js'
 
-@customElement("chat-module")
-export class ChatModule extends LitElement {
+@customElement("dynamic-module")
+export class DynamicModule extends LitElement {
   @property({ type: String })
   accessor title = ""
 
@@ -60,6 +61,14 @@ export class ChatModule extends LitElement {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 0.5rem;
     }
+
+    .a2ui-container {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 900px;
+      margin: 0.5rem;
+      width: 100%;
+    }
   `
 
   updated(changedProperties: Map<string, any>) {
@@ -80,6 +89,12 @@ export class ChatModule extends LitElement {
   }
 
   render() {
+    return [
+      this.#mainDynamicRegion(),
+    ]
+  }
+
+  #mainDynamicRegion () {
     return html`
       <style>
         :host {
@@ -88,14 +103,16 @@ export class ChatModule extends LitElement {
       </style>
       <div class="title">${this.title}</div>
       ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
-      <div class="response">${this.response || "Waiting for query..."}</div>
+      <div class="a2ui-container">
+        <a2ui-shell></a2ui-shell>
+      </div>
       <div class="status">Status: ${this.status}</div>
-    `
+    `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    "chat-module": ChatModule
+    "dynamic-module": DynamicModule
   }
 }
