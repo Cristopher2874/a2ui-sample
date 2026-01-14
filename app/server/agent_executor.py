@@ -33,7 +33,8 @@ from a2a.utils import (
 )
 from a2a.utils.errors import ServerError
 from a2ui.a2ui_extension import create_a2ui_part, try_activate_a2ui_extension
-from agent import RestaurantAgent
+# from agent import RestaurantAgent
+from oci_agent import OCIRestaurantAgent
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +45,10 @@ class RestaurantAgentExecutor(AgentExecutor):
     def __init__(self, base_url: str):
         # Instantiate two agents: one for UI and one for text-only.
         # The appropriate one will be chosen at execution time.
-        self.ui_agent = RestaurantAgent(base_url=base_url, use_ui=True)
-        self.text_agent = RestaurantAgent(base_url=base_url, use_ui=False)
+        # self.ui_agent = RestaurantAgent(base_url=base_url, use_ui=True)
+        self.oci_ui_agent = OCIRestaurantAgent(base_url=base_url, use_ui=True)
+        # self.text_agent = RestaurantAgent(base_url=base_url, use_ui=False)
+        self.oci_text_agent = OCIRestaurantAgent(base_url=base_url, use_ui=False)
 
     async def execute(
         self,
@@ -63,12 +66,14 @@ class RestaurantAgentExecutor(AgentExecutor):
 
         # Determine which agent to use based on whether the a2ui extension is active.
         if use_ui:
-            agent = self.ui_agent
+            # agent = self.ui_agent
+            agent = self.oci_ui_agent
             logger.info(
                 "--- AGENT_EXECUTOR: A2UI extension is active. Using UI agent. ---"
             )
         else:
-            agent = self.text_agent
+            # agent = self.text_agent
+            agent = self.oci_text_agent
             logger.info(
                 "--- AGENT_EXECUTOR: A2UI extension is not active. Using text agent. ---"
             )
@@ -123,7 +128,8 @@ class RestaurantAgentExecutor(AgentExecutor):
             await event_queue.enqueue_event(task)
         updater = TaskUpdater(event_queue, task.id, task.context_id)
 
-        async for item in agent.stream(query, task.context_id):
+        # async for item in agent.stream(query, task.context_id):
+        async for item in agent.oci_stream(query, task.context_id):
             is_task_complete = item["is_task_complete"]
             if not is_task_complete:
                 await updater.update_status(

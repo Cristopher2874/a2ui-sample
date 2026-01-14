@@ -92,6 +92,9 @@ export class A2UIClient {
       },
     });
 
+    console.log("RAW A2A response")
+    console.log(response)
+
     if ("error" in response) {
       throw new Error(response.error.message);
     }
@@ -99,6 +102,9 @@ export class A2UIClient {
     // TODO: controls the flow of messages received
     // Result is the full payload, cut to messages only for A2UI type
     const result = (response as SendMessageSuccessResponse).result as Task;
+    console.log("RAW result response")
+    console.log(result)
+
     if (result.kind === "task" && result.status.message?.parts) {
       const messages: v0_8.Types.ServerToClientMessage[] = [];
       for (const part of result.status.message.parts) {
