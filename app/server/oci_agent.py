@@ -273,24 +273,11 @@ class OCIRestaurantAgent:
 async def main():
     oci_agent = OCIRestaurantAgent("example",True)
 
+    print("client started successfully ------------------------")
+
     async for response in oci_agent.oci_stream("Hello! Can you get me top 5 chinese restaurants in NY?",123):
         print(response)
 
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
-
-    {'is_task_complete': False, 'updates': 
-     AIMessage(content='', additional_kwargs={
-        'finish_reason': 'tool_calls', 
-        'time_created': '2026-01-14 18:31:13.607000+00:00', 
-        'total_tokens': 320, 
-        'tool_calls': [{
-            'id': 'call_z25VRCtpbwAk1VzCAvizHNCu', 
-            'function': {'name': 'get_restaurants', 'arguments': {'cuisine': 'chinese', 'location': 'NY', 'count': 5}}, 
-            'type': 'function'}]}, 
-        response_metadata={'model_id': 'openai.gpt-4.1', 'model_version': '1.0.0', 'request_id': '657CB787777842B585FC4C0E56F30DA0/45B8566AA102914790049B5ED00520A6/6BC16D1A1C184EA492A6306E749E2972', 'content-length': '420', 'finish_reason': 'tool_calls', 'time_created': '2026-01-14 18:31:13.607000+00:00', 'total_tokens': 320, 'tool_calls': [{'id': 'call_z25VRCtpbwAk1VzCAvizHNCu', 'function': {'name': 'get_restaurants', 'arguments': {'cuisine': 'chinese', 'location': 'NY', 'count': 5}}, 'type': 'function'}]}, 
-        name='restaurant_agent', 
-        id='lc_run--019bbdc6-ab67-7a71-a842-e898702168dd-0', 
-        tool_calls=[{'name': 'get_restaurants', 'args': {'cuisine': 'chinese', 'location': 'NY', 'count': 5}, 'id': 'call_z25VRCtpbwAk1VzCAvizHNCu', 'type': 'tool_call'}], 
-        invalid_tool_calls=[])}

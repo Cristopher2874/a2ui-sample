@@ -1,5 +1,17 @@
 Set up. Requires UV manager to run.
 
+1. Create .env file and set up GenAI credentials as the example [.env.example](./.env.example)
+
+2. To confirm set up is ready you can run [oci_agent.py](./oci_agent.py) using
+```bash
+uv run oci_agent.py
+```
+
+3. Run the server with
+```bash
+uv run .
+```
+
 In case the project lock or toml file is broken, can reset using
 ```bash
 uv init
