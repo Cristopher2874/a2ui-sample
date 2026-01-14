@@ -96,6 +96,8 @@ export class A2UIClient {
       throw new Error(response.error.message);
     }
 
+    // TODO: controls the flow of messages received
+    // Result is the full payload, cut to messages only for A2UI type
     const result = (response as SendMessageSuccessResponse).result as Task;
     if (result.kind === "task" && result.status.message?.parts) {
       const messages: v0_8.Types.ServerToClientMessage[] = [];

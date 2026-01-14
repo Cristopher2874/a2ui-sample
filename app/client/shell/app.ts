@@ -1,8 +1,8 @@
 import { LitElement, html, css } from "lit"
 import { customElement, state } from "lit/decorators.js"
-import "./components/main_static"
+import "./components/main_traditional"
 import "./components/chatTextArea"
-import "./components/main_surface"
+import "./components/main_agent"
 import "./components/main_chat"
 
 @customElement("app-container")
