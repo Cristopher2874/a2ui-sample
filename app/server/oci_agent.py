@@ -40,7 +40,7 @@ AGENT_INSTRUCTION = """
 class OCIRestaurantAgent:
     """ Agent using OCI libraries to find restaurants """
 
-    SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
+    SUPPORTED_CONTENT_TYPES = ["text", "text/plain", "text/event-stream"]
 
     def __init__(self, base_url: str, use_ui: bool = False):
         self.base_url = base_url
@@ -64,10 +64,6 @@ class OCIRestaurantAgent:
             logger.error(f"CRITICAL: Failed to parse A2UI_SCHEMA: {e}")
             self.a2ui_schema_object = None
         # --- END MODIFICATION ---
-
-    def get_processing_message(self) -> str:
-        """ Helper function to simulate thinking? """
-        return "Finding restaurants that match your criteria..."
 
     def _build_agent(self, use_ui: bool) -> CompiledStateGraph:
         """Builds the LLM agent for the restaurant agent."""
@@ -129,28 +125,47 @@ class OCIRestaurantAgent:
             current_message = {"messages":[HumanMessage(query)]}
             config:RunnableConfig = {"run_id":str(session_id)}
             final_response_content = None
+            final_model_state = None
+            model_token_count = 0
 
             async for event in self._agent.astream(
                 input=current_message,
                 stream_mode="values",
                 config=config
             ):
-                logger.info(f"Event from runner:{event}")
-
                 latest_update:AnyMessage = event['messages'][-1]
+                final_response_content = latest_update.content
 
                 if hasattr(latest_update, 'tool_calls') and latest_update.tool_calls:
-                    latest_update = latest_update.tool_calls
+                    tool_name = str(latest_update.tool_calls[0].get('name'))
+                    tool_args = str(latest_update.tool_calls[0].get('args'))
+                    latest_update = f"Model calling tool: {tool_name} with args {tool_args}"
+                elif isinstance(latest_update,ToolMessage):
+                    tool_name = str(latest_update.name)
+                    status_content = str(latest_update.content)
+                    latest_update = f"Tool {tool_name} responded with:\n{status_content[:100]}...\n\nInformation passed to agent to build response"
+                elif isinstance(latest_update, AIMessage):
+                    status_content = str(latest_update.content)
+                    model_id = str(latest_update.response_metadata.get("model_id"))
+                    total_tokens_on_call = int(latest_update.response_metadata.get("total_tokens"))
+                    model_token_count = model_token_count + total_tokens_on_call
+                    agent_name = str(latest_update.name)
+                    model_data = f"""
+                        model_id: {model_id},
+                        agent_name: {agent_name},
+                        total_tokens_on_call: {str(model_token_count)}
+                    """
+                    latest_update = f"Agent current response:\n{status_content[:100]}...\n\nAgent metadata:\n{model_data}"
+                    final_model_state = latest_update
                 else:
-                    latest_update = latest_update.content
+                    status_content = str(latest_update.content)
+                    latest_update = f"Processing task, current state:\n{status_content[:100]}..."
 
                 # Yield intermediate updates on every attempt
                 yield {
                     "is_task_complete": False,
-                    "updates": str(latest_update,)
+                    "updates": latest_update
                 }
-
-                final_response_content = latest_update
 
             if final_response_content is None:
                 logger.warning(
@@ -183,6 +198,8 @@ class OCIRestaurantAgent:
                         "---a2ui_JSON---", 1
                     )
 
+                    text_part = final_model_state
+
                     if not json_string.strip():
                         raise ValueError("JSON part is empty.")
 
@@ -212,6 +229,7 @@ class OCIRestaurantAgent:
                         f"Validation OK (Attempt {attempt}). ---"
                     )
                     is_valid = True
+                    final_response_content = f"{text_part}\n---a2ui_JSON---\n{json_string}"
                 except (
                     ValueError,
                     json.JSONDecodeError,
@@ -232,7 +250,7 @@ class OCIRestaurantAgent:
                 logger.info(
                     f"--- RestaurantAgent.stream: Response is valid. Sending final response (Attempt {attempt}). ---"
                 )
-                logger.info(f"Final response: {final_response_content}")
+                # logger.info(f"Final response: {final_response_content}")
                 yield {
                     "is_task_complete": True,
                     "content": final_response_content,
@@ -268,9 +286,8 @@ class OCIRestaurantAgent:
             }
             # --- End: UI Validation and Retry Logic ---
 
-
-# TODO: test section
 async def main():
+    """ Test section for agent class """
     oci_agent = OCIRestaurantAgent("example",True)
 
     print("client started successfully ------------------------")

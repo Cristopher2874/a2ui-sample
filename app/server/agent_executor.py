@@ -33,7 +33,6 @@ from a2a.utils import (
 )
 from a2a.utils.errors import ServerError
 from a2ui.a2ui_extension import create_a2ui_part, try_activate_a2ui_extension
-# from agent import RestaurantAgent
 from oci_agent import OCIRestaurantAgent
 
 logger = logging.getLogger(__name__)
@@ -45,9 +44,7 @@ class RestaurantAgentExecutor(AgentExecutor):
     def __init__(self, base_url: str):
         # Instantiate two agents: one for UI and one for text-only.
         # The appropriate one will be chosen at execution time.
-        # self.ui_agent = RestaurantAgent(base_url=base_url, use_ui=True)
         self.oci_ui_agent = OCIRestaurantAgent(base_url=base_url, use_ui=True)
-        # self.text_agent = RestaurantAgent(base_url=base_url, use_ui=False)
         self.oci_text_agent = OCIRestaurantAgent(base_url=base_url, use_ui=False)
 
     async def execute(
@@ -96,7 +93,8 @@ class RestaurantAgentExecutor(AgentExecutor):
 
         if ui_event_part:
             logger.info(f"Received a2ui ClientEvent: {ui_event_part}")
-            action = ui_event_part.get("actionName")
+            # Changed on event name due to new version, could change in the future
+            action = ui_event_part.get("name")
             ctx = ui_event_part.get("context", {})
 
             if action == "book_restaurant":
@@ -189,6 +187,7 @@ class RestaurantAgentExecutor(AgentExecutor):
                 elif isinstance(part.root, DataPart):
                     logger.info(f"    - Data: {str(part.root.data)[:200]}...")
             logger.info("-----------------------------")
+            final_state = TaskState.completed
 
             await updater.update_status(
                 final_state,

@@ -24,7 +24,7 @@ import {
   HTMLTemplateResult,
   unsafeCSS,
 } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { theme as uiTheme } from "../theme/default-theme.js";
 import { A2UIClient } from "./controllers/client.js";
 import {
@@ -56,6 +56,9 @@ const configs: Record<string, AppConfig> = {
 export class A2UILayoutEditor extends SignalWatcher(LitElement) {
   @provide({ context: UI.Context.themeContext })
   accessor theme: v0_8.Types.Theme = uiTheme;
+
+  @property({ type: String })
+  accessor user_query = ""
 
   @state()
   accessor #requesting = false;
@@ -304,6 +307,15 @@ export class A2UILayoutEditor extends SignalWatcher(LitElement) {
 
     // Initialize client with configured URL
     this.#a2uiClient = new A2UIClient(this.config.serverUrl);
+
+    // Forward streaming events from client to parent components
+    this.#a2uiClient.addEventListener('streaming-event', (event: any) => {
+      this.dispatchEvent(new CustomEvent('streaming-event', {
+        detail: event.detail,
+        bubbles: true,
+        composed: true
+      }));
+    });
   }
 
   render() {

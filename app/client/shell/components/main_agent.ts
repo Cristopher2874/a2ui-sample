@@ -62,6 +62,14 @@ export class DynamicModule extends LitElement {
       border-radius: 0.5rem;
     }
 
+    .status p {
+      margin: 0.25rem 0;
+    }
+
+    .status-text {
+      white-space: pre-wrap;
+    }
+
     .a2ui-container {
       flex: 1;
       overflow-y: auto;
@@ -74,6 +82,52 @@ export class DynamicModule extends LitElement {
   updated(changedProperties: Map<string, any>) {
     if (changedProperties.has("query") && this.query) {
       this.handleQuery()
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    // Listen for streaming events from the A2UI shell
+    this.addEventListener('streaming-event', (event: any) => {
+      const streamingEvent = event.detail;
+      this.updateStatusFromStreamingEvent(streamingEvent);
+    });
+  }
+
+  // TODO: this method should go on a separate router type
+  private updateStatusFromStreamingEvent(event: any) {
+    // status updates messages
+    if (event.kind === 'status-update') {
+      const status = event.status;
+      const isFinal = event.final;
+      const state = status?.state;
+      const hasMessage = status?.message?.parts?.length > 0;
+
+      // Actual part with status of server
+      const serverState:Array<any> = hasMessage? event.status.message.parts : [{"text":"Server did not send any message parts"}];
+      const serverMessage = serverState[0].text || "No text content"
+
+      console.log("process status", status);
+      console.log("process final message received", isFinal);
+      console.log("process state", state);
+      console.log("server message",serverState);
+      console.log("End of message update")
+
+      if (state == 'failed'){
+        this.status = "Task failed - An error occurred"
+      }else {
+        this.status = serverMessage;
+      }
+    }
+    else if (event.kind === 'task') {
+      this.status = "Task management event received";
+    }
+    else if (event.kind === 'message') {
+      this.status = "Direct message received";
+    }
+    else {
+      this.status = `Event type: ${event.kind || 'unknown'}`;
     }
   }
 
@@ -104,9 +158,12 @@ export class DynamicModule extends LitElement {
       <div class="title">${this.title}</div>
       ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
       <div class="a2ui-container">
-        <a2ui-shell></a2ui-shell>
+        <a2ui-shell user_query=${this.query}></a2ui-shell>
       </div>
-      <div class="status">Status: ${this.status}</div>
+      <div class="status">
+        <p>Status:</p>
+        <p class="status-text">${this.status}</p>
+      </div>
     `;
   }
 }

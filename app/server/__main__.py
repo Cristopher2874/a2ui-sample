@@ -14,14 +14,15 @@
 
 import logging
 import os
+import httpx
 
 import click
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryTaskStore
+from a2a.server.tasks import InMemoryTaskStore, BasePushNotificationSender, InMemoryPushNotificationConfigStore
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from a2ui.a2ui_extension import get_a2ui_agent_extension
-from agent import RestaurantAgent
+from oci_agent import OCIRestaurantAgent
 from agent_executor import RestaurantAgentExecutor
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -51,6 +52,7 @@ def main(host, port):
 
         capabilities = AgentCapabilities(
             streaming=True,
+            push_notifications=True,
             extensions=[get_a2ui_agent_extension()],
         )
         skill = AgentSkill(
@@ -68,17 +70,23 @@ def main(host, port):
             description="This agent helps find restaurants based on user criteria.",
             url=base_url,  # <-- Use base_url here
             version="1.0.0",
-            default_input_modes=RestaurantAgent.SUPPORTED_CONTENT_TYPES,
-            default_output_modes=RestaurantAgent.SUPPORTED_CONTENT_TYPES,
+            default_input_modes=OCIRestaurantAgent.SUPPORTED_CONTENT_TYPES,
+            default_output_modes=OCIRestaurantAgent.SUPPORTED_CONTENT_TYPES,
             capabilities=capabilities,
             skills=[skill],
         )
 
         agent_executor = RestaurantAgentExecutor(base_url=base_url)
 
+        httpx_client = httpx.AsyncClient()
+        push_config_store = InMemoryPushNotificationConfigStore()
+        push_sender = BasePushNotificationSender(httpx_client=httpx_client,
+                        config_store=push_config_store)
         request_handler = DefaultRequestHandler(
             agent_executor=agent_executor,
             task_store=InMemoryTaskStore(),
+            push_config_store=push_config_store,
+            push_sender=push_sender
         )
         server = A2AStarletteApplication(
             agent_card=agent_card, http_handler=request_handler

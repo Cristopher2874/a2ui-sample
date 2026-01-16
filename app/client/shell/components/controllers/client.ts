@@ -20,11 +20,12 @@ import { v0_8 } from "@a2ui/lit";
 
 const A2UI_MIME_TYPE = "application/json+a2ui";
 
-export class A2UIClient {
+export class A2UIClient extends EventTarget {
   #serverUrl: string;
   #client: A2AClient | null = null;
 
   constructor(serverUrl: string = "") {
+    super();
     this.#serverUrl = serverUrl;
   }
 
@@ -83,7 +84,8 @@ export class A2UIClient {
       } as Part];
     }
 
-    const response = await client.sendMessage({
+    // Opens Streaming SSE connection
+    const streamingResponse = client.sendMessageStream({
       message: {
         messageId: crypto.randomUUID(),
         role: "user",
@@ -92,29 +94,25 @@ export class A2UIClient {
       },
     });
 
-    console.log("RAW A2A response")
-    console.log(response)
+    const messages: v0_8.Types.ServerToClientMessage[] = [];
 
-    if ("error" in response) {
-      throw new Error(response.error.message);
-    }
+    // Process streaming events
+    for await (const event of streamingResponse) {
 
-    // TODO: controls the flow of messages received
-    // Result is the full payload, cut to messages only for A2UI type
-    const result = (response as SendMessageSuccessResponse).result as Task;
-    console.log("RAW result response")
-    console.log(result)
+      // Dispatch event for UI status updates
+      this.dispatchEvent(new CustomEvent('streaming-event', { detail: event }));
 
-    if (result.kind === "task" && result.status.message?.parts) {
-      const messages: v0_8.Types.ServerToClientMessage[] = [];
-      for (const part of result.status.message.parts) {
-        if (part.kind === 'data') {
-          messages.push(part.data as v0_8.Types.ServerToClientMessage);
+      // Check if this event contains task status with message parts
+      // Only add the A2UI messages to render, probably will require handling LLM text responses.
+      if (event.kind === "status-update" && event.status?.message?.parts) {
+        for (const part of event.status.message.parts) {
+          if (part.kind === 'data') {
+            const a2uiMessage = part.data as v0_8.Types.ServerToClientMessage;
+            messages.push(a2uiMessage);
+          }
         }
       }
-      return messages;
     }
-
-    return [];
+    return messages;
   }
 }
