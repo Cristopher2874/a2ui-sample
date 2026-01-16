@@ -1,5 +1,7 @@
 import { LitElement, html, css } from "lit"
 import { customElement, state } from "lit/decorators.js"
+import { provide } from "@lit/context"
+import { a2uiRouter, routerContext } from "./services/a2ui-router.js"
 import "./components/main_traditional"
 import "./components/chatTextArea"
 import "./components/main_agent"
@@ -7,8 +9,8 @@ import "./components/main_chat"
 
 @customElement("app-container")
 export class AppContainer extends LitElement {
-  @state()
-  accessor query = ""
+  @provide({ context: routerContext })
+  accessor router = a2uiRouter;
 
   static styles = css`
     :host {
@@ -44,40 +46,24 @@ export class AppContainer extends LitElement {
     }
   `
 
-  private handleQuerySubmit(e: CustomEvent) {
-    this.query = e.detail.query
-    console.log("Query submitted:", this.query)
-
-    // Dispatch event to chat modules
-    this.dispatchEvent(
-      new CustomEvent("query-update", {
-        detail: { query: this.query },
-        bubbles: true,
-        composed: true,
-      }),
-    )
-  }
-
   render() {
     return html`
       <div class="container">
         <div class="header">EDGE demo showcase</div>
-        
+
         <div class="modules">
           <static-module></static-module>
-          <chat-module 
+          <chat-module
             title="Chat app container"
             subtitle="App using LLM to chat"
-            color="#f87171"
-            .query=${this.query}>
+            color="#f87171">
           </chat-module>
-          <dynamic-module 
+          <dynamic-module
             title="Sample application for A2UI"
-            color="#334155"
-            .query=${this.query}>
+            color="#334155">
           </dynamic-module>
         </div>
-        <chat-input @query-submit=${this.handleQuerySubmit}></chat-input>
+        <chat-input></chat-input>
       </div>
     `
   }

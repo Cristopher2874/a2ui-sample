@@ -1,9 +1,48 @@
-import { LitElement, html, css } from "lit"
-import { customElement, property, state } from "lit/decorators.js"
-import './temp_surface.js'
+import { SignalWatcher } from "@lit-labs/signals";
+import { provide } from "@lit/context";
+import { consume } from "@lit/context";
+import {
+  LitElement,
+  html,
+  css,
+  nothing,
+  HTMLTemplateResult,
+  unsafeCSS,
+} from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { theme as uiTheme } from "../theme/default-theme.js";
+import { A2UIRouter, routerContext } from "../services/a2ui-router.js";
+import {
+  SnackbarAction,
+  SnackbarMessage,
+  SnackbarUUID,
+  SnackType,
+} from "../types/types.js";
+import { type Snackbar } from "../ui/snackbar.js";
+import { repeat } from "lit/directives/repeat.js";
+import { v0_8 } from "@a2ui/lit";
+import * as UI from "@a2ui/lit/ui";
+
+// App elements.
+import "../ui/ui.js";
+
+// Configurations
+import { AppConfig } from "../configs/types.js";
+import { config as restaurantConfig } from "../configs/restaurant.js";
+import { styleMap } from "lit/directives/style-map.js";
+
+const configs: Record<string, AppConfig> = {
+  restaurant: restaurantConfig,
+};
 
 @customElement("dynamic-module")
 export class DynamicModule extends LitElement {
+  @provide({ context: UI.Context.themeContext })
+  accessor theme: v0_8.Types.Theme = uiTheme;
+
+  @consume({ context: routerContext })
+  accessor router!: A2UIRouter;
+
   @property({ type: String })
   accessor title = ""
 
@@ -13,8 +52,8 @@ export class DynamicModule extends LitElement {
   @property({ type: String })
   accessor color = "#334155"
 
-  @property({ type: String })
-  accessor query = ""
+  @property({ type: Object })
+  accessor config: AppConfig = restaurantConfig;
 
   @state()
   accessor response = ""
@@ -22,80 +61,165 @@ export class DynamicModule extends LitElement {
   @state()
   accessor status = "Ready"
 
-  static styles = css`
-    :host {
-      display: block;
-      border-radius: 1rem;
-      padding: 2rem;
-      color: white;
-      display: flex;
-      flex-direction: column;
-    }
+  @state()
+  accessor #requesting = false;
 
-    .title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
+  @state()
+  accessor #error: string | null = null;
 
-    .subtitle {
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-      opacity: 0.9;
-    }
+  @state()
+  accessor #lastMessages: v0_8.Types.ServerToClientMessage[] = [];
 
-    .response {
-      flex: 1;
-      font-size: 1rem;
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 0.5rem;
-      overflow-y: auto;
-    }
+  #processor = v0_8.Data.createSignalA2uiMessageProcessor();
+  #snackbar: Snackbar | undefined = undefined;
+  #pendingSnackbarMessages: Array<{
+    message: SnackbarMessage;
+    replaceAll: boolean;
+  }> = [];
 
-    .status {
-      font-size: 0.875rem;
-      padding: 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 0.5rem;
-    }
+  static styles = [
+    unsafeCSS(v0_8.Styles.structuralStyles),
+    css`
+      * {
+        box-sizing: border-box;
+      }
 
-    .status p {
-      margin: 0.25rem 0;
-    }
+      :host {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding: 10px;
+        min-height: 100%;
+        color: light-dark(var(--n-10), var(--n-90));
+        font-family: var(--font-family);
+        border: 2px solid #000000;
+        border-radius: 10px;
+      }
 
-    .status-text {
-      white-space: pre-wrap;
-    }
+      .title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
 
-    .a2ui-container {
-      flex: 1;
-      overflow-y: auto;
-      max-height: 900px;
-      margin: 0.5rem;
-      width: 100%;
-    }
-  `
+      .subtitle {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+      }
 
-  updated(changedProperties: Map<string, any>) {
-    if (changedProperties.has("query") && this.query) {
-      this.handleQuery()
-    }
-  }
+      .response {
+        flex: 1;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 0.5rem;
+        overflow-y: auto;
+      }
+
+      .status {
+        font-size: 0.875rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+      }
+
+      .status p {
+        margin: 0.25rem 0;
+      }
+
+      .status-text {
+        white-space: pre-wrap;
+      }
+
+      .surfaces-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .surfaces {
+        flex: 1;
+        width: 100%;
+        max-width: 100svw;
+        padding: var(--bb-grid-size-3);
+        animation: fadeIn 1s cubic-bezier(0, 0, 0.3, 1) 0.3s backwards;
+        overflow-y: auto;
+      }
+
+      .pending {
+        width: 100%;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 1s cubic-bezier(0, 0, 0.3, 1) 0.3s backwards;
+        gap: 16px;
+      }
+
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-left-color: var(--p-60);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .error {
+        color: var(--e-40);
+        background-color: var(--e-95);
+        border: 1px solid var(--e-80);
+        padding: 16px;
+        border-radius: 8px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    `,
+  ]
 
   connectedCallback() {
     super.connectedCallback();
 
-    // Listen for streaming events from the A2UI shell
-    this.addEventListener('streaming-event', (event: any) => {
-      const streamingEvent = event.detail;
-      this.updateStatusFromStreamingEvent(streamingEvent);
-    });
+    // Apply the theme directly, which will use the Lit context.
+    if (this.config.theme) {
+      this.theme = this.config.theme;
+    }
+
+    window.document.title = this.config.title;
+    window.document.documentElement.style.setProperty(
+      "--background",
+      this.config.background
+    );
+
+    // Listen for streaming events from the router
+    if (this.router) {
+      this.router.addEventListener('streaming-event', (event: any) => {
+        const streamingEvent = event.detail;
+        this.updateStatusFromStreamingEvent(streamingEvent);
+        this.processMessages(streamingEvent);
+      });
+    }
   }
 
-  // TODO: this method should go on a separate router type
+  // TODO: this method should go on a separate router type, missing to update
   private updateStatusFromStreamingEvent(event: any) {
     // status updates messages
     if (event.kind === 'status-update') {
@@ -131,41 +255,173 @@ export class DynamicModule extends LitElement {
     }
   }
 
-  private async handleQuery() {
-    this.status = "Processing..."
-    this.response = `Processing query: "${this.query}"`
+  private processMessages(event: any) {
+    // Check if this event contains A2UI messages
+    if (event.kind === "status-update" && event.status?.message?.parts) {
+      const newMessages: v0_8.Types.ServerToClientMessage[] = [];
+      for (const part of event.status.message.parts) {
+        if (part.kind === 'data') {
+          const a2uiMessage = part.data as v0_8.Types.ServerToClientMessage;
+          newMessages.push(a2uiMessage);
+        }
+      }
+      // Replace with latest messages, not accumulate
+      if (newMessages.length > 0) {
+        this.#lastMessages = newMessages;
+        this.#processor.clearSurfaces();
+        this.#processor.processMessages(this.#lastMessages);
+      }
+    }
+  }
 
-    // Simulate async processing
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  snackbar(
+    message: string | HTMLTemplateResult,
+    type: SnackType,
+    actions: SnackbarAction[] = [],
+    persistent = false,
+    id = globalThis.crypto.randomUUID(),
+    replaceAll = false
+  ) {
+    if (!this.#snackbar) {
+      this.#pendingSnackbarMessages.push({
+        message: {
+          id,
+          message,
+          type,
+          persistent,
+          actions,
+        },
+        replaceAll,
+      });
+      return;
+    }
 
-    this.response = `Response to "${this.query}": This is a simulated response from ${this.title}. The query has been processed successfully.`
-    this.status = "Complete"
+    return this.#snackbar.show(
+      {
+        id,
+        message,
+        type,
+        persistent,
+        actions,
+      },
+      replaceAll
+    );
+  }
+
+  unsnackbar(id?: SnackbarUUID) {
+    if (!this.#snackbar) {
+      return;
+    }
+
+    this.#snackbar.hide(id);
   }
 
   render() {
     return [
-      this.#mainDynamicRegion(),
+      this.#maybeRenderError(),
+      this.#maybeRenderData(),
     ]
   }
 
-  #mainDynamicRegion () {
-    return html`
-      <style>
-        :host {
-          background: ${this.color};
+  #maybeRenderError() {
+    if (!this.#error) return nothing;
+
+    return html`<div class="error">${this.#error}</div>`;
+  }
+
+  #maybeRenderData() {
+    if (this.#requesting) {
+      return html` <div class="pending">
+        <div class="spinner"></div>
+        <div class="loading-text">Awaiting an answer...</div>
+      </div>`;
+    }
+
+    // Render A2UI surfaces
+    const surfaces = this.#processor.getSurfaces();
+    if (surfaces.size === 0) {
+      return html`<div class="a2ui-container">
+        <div class="title">${this.title}</div>
+        ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
+        <div class="response">Ready to process A2UI messages...</div>
+        <div class="status">
+          <p>Status:</p>
+          <p class="status-text">${this.status}</p>
+        </div>
+      </div>`;
+    }
+
+    return html`<div class="surfaces-container">
+      <section class="surfaces">
+        ${repeat(
+        this.#processor.getSurfaces(),
+        ([surfaceId]) => surfaceId,
+        ([surfaceId, surface]) => {
+          return html`<a2ui-surface
+                @a2uiaction=${async (
+            evt: v0_8.Events.StateEvent<"a2ui.action">
+          ) => {
+              const [target] = evt.composedPath();
+              if (!(target instanceof HTMLElement)) {
+                return;
+              }
+
+              const context: v0_8.Types.A2UIClientEventMessage["userAction"]["context"] =
+                {};
+              if (evt.detail.action.context) {
+                const srcContext = evt.detail.action.context;
+                for (const item of srcContext) {
+                  if (item.value.literalBoolean) {
+                    context[item.key] = item.value.literalBoolean;
+                  } else if (item.value.literalNumber) {
+                    context[item.key] = item.value.literalNumber;
+                  } else if (item.value.literalString) {
+                    context[item.key] = item.value.literalString;
+                  } else if (item.value.path) {
+                    const path = this.#processor.resolvePath(
+                      item.value.path,
+                      evt.detail.dataContextPath
+                    );
+                    const value = this.#processor.getData(
+                      evt.detail.sourceComponent,
+                      path,
+                      surfaceId
+                    );
+                    context[item.key] = value;
+                  }
+                }
+              }
+
+              const message: v0_8.Types.A2UIClientEventMessage = {
+                userAction: {
+                  name: evt.detail.action.name,
+                  surfaceId,
+                  sourceComponentId: target.id,
+                  timestamp: new Date().toISOString(),
+                  context,
+                },
+              };
+
+              // Send action back via router
+              if (this.router) {
+                await this.router.sendA2UIMessage(this.config.serverUrl || "http://localhost:10002", message);
+              }
+            }}
+                .surfaceId=${surfaceId}
+                .surface=${surface}
+                .processor=${this.#processor}
+              ></a2-uisurface>`;
         }
-      </style>
-      <div class="title">${this.title}</div>
-      ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
-      <div class="a2ui-container">
-        <a2ui-shell user_query=${this.query}></a2ui-shell>
-      </div>
+      )}
+      </section>
       <div class="status">
         <p>Status:</p>
         <p class="status-text">${this.status}</p>
       </div>
-    `;
+    </div>`;
   }
+
+
 }
 
 declare global {

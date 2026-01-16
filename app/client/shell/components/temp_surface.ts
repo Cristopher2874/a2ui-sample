@@ -26,7 +26,7 @@ import {
 } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { theme as uiTheme } from "../theme/default-theme.js";
-import { A2UIClient } from "./controllers/client.js";
+import { A2UIClient } from "../services/client.js";
 import {
   SnackbarAction,
   SnackbarMessage,

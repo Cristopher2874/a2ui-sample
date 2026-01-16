@@ -1,8 +1,13 @@
 import { LitElement, html, css } from "lit"
 import { customElement, property, state } from "lit/decorators.js"
+import { consume } from "@lit/context"
+import { routerContext, A2UIRouter } from "../services/a2ui-router.js"
 
 @customElement("chat-module")
 export class ChatModule extends LitElement {
+  @consume({ context: routerContext })
+  accessor router!: A2UIRouter;
+
   @property({ type: String })
   accessor title = ""
 
@@ -12,14 +17,60 @@ export class ChatModule extends LitElement {
   @property({ type: String })
   accessor color = "#334155"
 
-  @property({ type: String })
-  accessor query = ""
-
   @state()
   accessor response = ""
 
   @state()
   accessor status = "Ready"
+
+  // Default server URL for this module
+  private defaultServerUrl = "http://localhost:10002";
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    // Listen for streaming events from the router
+    if (this.router) {
+      this.router.addEventListener('streaming-event', (event: any) => {
+        const streamingEvent = event.detail;
+        this.processStreamingEvent(streamingEvent);
+      });
+    }
+  }
+
+  private processStreamingEvent(event: any) {
+    // Process text messages for chat display
+    if (event.kind === 'status-update') {
+      const status = event.status;
+      const isFinal = event.final;
+      const state = status?.state;
+      const hasMessage = status?.message?.parts?.length > 0;
+
+      // Extract text parts
+      if (hasMessage) {
+        for (const part of status.message.parts) {
+          if (part.kind === 'text') {
+            this.response = part.text;
+            this.status = isFinal ? "Complete" : "Processing...";
+            break; // Use the first text part
+          }
+        }
+      }
+
+      if (state === 'failed') {
+        this.status = "Task failed - An error occurred";
+      }
+    }
+    else if (event.kind === 'task') {
+      this.status = "Task management event received";
+    }
+    else if (event.kind === 'message') {
+      this.status = "Direct message received";
+    }
+    else {
+      this.status = `Event type: ${event.kind || 'unknown'}`;
+    }
+  }
 
   static styles = css`
     :host {
@@ -61,23 +112,6 @@ export class ChatModule extends LitElement {
       border-radius: 0.5rem;
     }
   `
-
-  updated(changedProperties: Map<string, any>) {
-    if (changedProperties.has("query") && this.query) {
-      this.handleQuery()
-    }
-  }
-
-  private async handleQuery() {
-    this.status = "Processing..."
-    this.response = `Processing query: "${this.query}"`
-
-    // Simulate async processing
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    this.response = `Response to "${this.query}": This is a simulated response from ${this.title}. The query has been processed successfully.`
-    this.status = "Complete"
-  }
 
   render() {
     return [

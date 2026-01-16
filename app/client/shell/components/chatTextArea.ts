@@ -1,10 +1,18 @@
 import { LitElement, html, css } from "lit"
 import { customElement, state } from "lit/decorators.js"
+import { consume } from "@lit/context"
+import { routerContext, A2UIRouter } from "../services/a2ui-router.js"
 
 @customElement("chat-input")
 export class ChatInput extends LitElement {
+  @consume({ context: routerContext })
+  accessor router!: A2UIRouter;
+
   @state()
   accessor #inputValue = ""
+
+  // Default server URL for sending messages
+  private defaultServerUrl = "http://localhost:10002";
 
   static styles = css`
     :host {
@@ -57,17 +65,15 @@ export class ChatInput extends LitElement {
     }
   `
 
-  private handleSubmit() {
-    if (this.#inputValue.trim()) {
-      console.log("[v0] Submitting query:", this.#inputValue)
-      this.dispatchEvent(
-        new CustomEvent("query-submit", {
-          detail: { query: this.#inputValue },
-          bubbles: true,
-          composed: true,
-        }),
-      )
-      this.#inputValue = ""
+  private async handleSubmit() {
+    if (this.#inputValue.trim() && this.router) {
+      console.log("[v0] Sending message:", this.#inputValue)
+      try {
+        await this.router.sendTextMessage(this.defaultServerUrl, this.#inputValue.trim());
+        this.#inputValue = ""
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
     }
   }
 

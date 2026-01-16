@@ -38,3 +38,7 @@ def get_restaurants(cuisine: str, location: str, count: int = 5) -> str:
             logger.error(f"  - Error: Failed to decode JSON from {file_path}")
 
     return json.dumps(items)
+
+@tool
+def make_reservation(restaurant_name:str, people:int, special_instructions:str)->str:
+    return f"Table booked at {restaurant_name} for {people} people with special details added about: {special_instructions}"
