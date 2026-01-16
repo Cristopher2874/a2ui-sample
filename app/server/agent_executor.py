@@ -187,6 +187,7 @@ class RestaurantAgentExecutor(AgentExecutor):
                 elif isinstance(part.root, DataPart):
                     logger.info(f"    - Data: {str(part.root.data)[:200]}...")
             logger.info("-----------------------------")
+            # TODO: remove in case multiturn is enabled
             final_state = TaskState.completed
 
             await updater.update_status(

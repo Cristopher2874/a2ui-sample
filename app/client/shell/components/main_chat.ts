@@ -2,6 +2,8 @@ import { LitElement, html, css } from "lit"
 import { customElement, property, state } from "lit/decorators.js"
 import { consume } from "@lit/context"
 import { routerContext, A2UIRouter } from "../services/a2ui-router.js"
+import { marked } from "marked"
+import { unsafeHTML } from "lit/directives/unsafe-html.js"
 
 @customElement("chat-module")
 export class ChatModule extends LitElement {
@@ -23,8 +25,14 @@ export class ChatModule extends LitElement {
   @state()
   accessor status = "Ready"
 
+  @state()
+  accessor #startTime: number | null = null;
+
+  @state()
+  accessor #elapsedTime: number | null = null;
+
   // Default server URL for this module
-  private defaultServerUrl = "http://localhost:10002";
+  private defaultServerUrl = "http://localhost:10002/llm";
 
   connectedCallback() {
     super.connectedCallback();
@@ -35,10 +43,21 @@ export class ChatModule extends LitElement {
         const streamingEvent = event.detail;
         this.processStreamingEvent(streamingEvent);
       });
+
+      this.router.addEventListener('message-sent', (event: any) => {
+        const sentEvent = event.detail;
+        if (sentEvent.serverUrl === this.defaultServerUrl) {
+          this.#startTime = sentEvent.timestamp;
+          this.#elapsedTime = null;
+        }
+      });
     }
   }
 
   private processStreamingEvent(event: any) {
+    // Only process events from this module's server URL
+    if (event.serverUrl !== this.defaultServerUrl) return;
+
     // Process text messages for chat display
     if (event.kind === 'status-update') {
       const status = event.status;
@@ -46,12 +65,21 @@ export class ChatModule extends LitElement {
       const state = status?.state;
       const hasMessage = status?.message?.parts?.length > 0;
 
+      const serverState: Array<any> = hasMessage ? event.status.message.parts : [{ "text": "Server did not send any message parts" }];
+      const serverMessage = serverState[0].text || "No text content"
+
+      console.log("process status", status);
+      console.log("process final message received", isFinal);
+      console.log("process state", state);
+      console.log("server message", serverState);
+      console.log("End of message update")
+
       // Extract text parts
       if (hasMessage) {
         for (const part of status.message.parts) {
           if (part.kind === 'text') {
-            this.response = part.text;
-            this.status = isFinal ? "Complete" : "Processing...";
+            this.response = isFinal ? serverMessage : "Working on response...";
+            this.status = isFinal ? serverState[1].text : serverMessage;
             break; // Use the first text part
           }
         }
@@ -59,6 +87,11 @@ export class ChatModule extends LitElement {
 
       if (state === 'failed') {
         this.status = "Task failed - An error occurred";
+      }
+
+      // Calculate elapsed time when final response is received
+      if (hasMessage && this.#startTime) {
+        this.#elapsedTime = Date.now() - this.#startTime;
       }
     }
     else if (event.kind === 'task') {
@@ -74,7 +107,6 @@ export class ChatModule extends LitElement {
 
   static styles = css`
     :host {
-      display: block;
       border-radius: 1rem;
       padding: 2rem;
       color: white;
@@ -86,6 +118,16 @@ export class ChatModule extends LitElement {
       font-size: 1.25rem;
       font-weight: 600;
       margin-bottom: 0.5rem;
+    }
+
+    .stopwatch {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: #1a2332;
+      border-radius: 0.25rem;
+      display: inline-block;
     }
 
     .subtitle {
@@ -111,6 +153,50 @@ export class ChatModule extends LitElement {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 0.5rem;
     }
+
+    .status p {
+      margin: 0.25rem 0;
+    }
+
+    .status-text {
+      white-space: pre-wrap;
+    }
+
+    .pending {
+      width: 100%;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 1s cubic-bezier(0, 0, 0.3, 1) 0.3s backwards;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-left-color: var(--p-60);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   `
 
   render() {
@@ -119,17 +205,21 @@ export class ChatModule extends LitElement {
     ]
   }
 
-  #mainDynamicRegion () {
+  #mainDynamicRegion() {
     return html`
       <style>
         :host {
           background: ${this.color};
         }
       </style>
+      ${this.#elapsedTime !== null ? html`<div class="stopwatch">Response time: ${(this.#elapsedTime / 1000).toFixed(2)}s</div>` : ""}
       <div class="title">${this.title}</div>
       ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
-      <div class="response">${this.response || "Waiting for query..."}</div>
-      <div class="status">Status: ${this.status}</div>
+      <div class="response">${unsafeHTML(marked(this.response || "Waiting for query...") as string)}</div>
+      <div class="status">
+        <p>Status:</p>
+        <p class="status-text">${this.status}</p>
+      </div>
     `;
   }
 }

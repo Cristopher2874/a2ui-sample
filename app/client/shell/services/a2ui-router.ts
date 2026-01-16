@@ -49,6 +49,16 @@ export class A2UIRouter extends EventTarget {
    * @param text The text message to send
    */
   async sendTextMessage(serverUrl: string, text: string): Promise<v0_8.Types.ServerToClientMessage[]> {
+    // Emit message-sent event for timing
+    this.dispatchEvent(new CustomEvent('message-sent', {
+      detail: {
+        serverUrl,
+        timestamp: Date.now()
+      },
+      bubbles: true,
+      composed: true
+    }));
+
     return this.sendMessage(serverUrl, text);
   }
 
@@ -61,6 +71,16 @@ export class A2UIRouter extends EventTarget {
     serverUrl: string,
     message: v0_8.Types.A2UIClientEventMessage
   ): Promise<v0_8.Types.ServerToClientMessage[]> {
+    // Emit message-sent event for timing
+    this.dispatchEvent(new CustomEvent('message-sent', {
+      detail: {
+        serverUrl,
+        timestamp: Date.now()
+      },
+      bubbles: true,
+      composed: true
+    }));
+
     return this.sendMessage(serverUrl, message);
   }
 

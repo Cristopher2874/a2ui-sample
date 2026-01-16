@@ -55,12 +55,13 @@ export class AppContainer extends LitElement {
           <static-module></static-module>
           <chat-module
             title="Chat app container"
-            subtitle="App using LLM to chat"
-            color="#f87171">
+            subtitle="App using LLM to chat, chatbot-UI"
+            color="#717af8">
           </chat-module>
           <dynamic-module
-            title="Sample application for A2UI"
-            color="#334155">
+            title="Agent Application container"
+            subtitle="App using agent cluster and A2UI events for dynamic UI"
+            color="#3c5d8b">
           </dynamic-module>
         </div>
         <chat-input></chat-input>

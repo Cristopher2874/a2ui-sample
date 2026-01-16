@@ -24,7 +24,7 @@ class OCIRestaurantLLM:
     def _build_agent(self) -> CompiledStateGraph:
         """Builds the LLM agent for the restaurant agent."""
         oci_llm = ChatOCIGenAI(
-            model_id="openai.gpt-4.1",
+            model_id="xai.grok-4-fast-non-reasoning",
             service_endpoint=os.getenv("SERVICE_ENDPOINT"),
             compartment_id=os.getenv("COMPARTMENT_ID"),
             model_kwargs={"temperature":0.7},
@@ -34,7 +34,7 @@ class OCIRestaurantLLM:
         return create_agent(
             model=oci_llm,
             tools=[get_restaurants, make_reservation],
-            system_prompt="You are a restaurant assistant that helps user book restaurants and find best places.",
+            system_prompt="You are a restaurant assistant that helps user book restaurants and find best places. Use markdown for your responses and make the mlook well formatted, but not too verbose.",
             name="restaurant_llm"
         )
     
@@ -87,6 +87,7 @@ class OCIRestaurantLLM:
             }
         
         yield {
-            "is_task_complete": False,
-            "updates": f"{final_response_content}\n{final_model_state}"
+            "is_task_complete": True,
+            "content": f"{final_response_content}",
+            "final_state": f"{str(final_response_content)[:100]}\n{final_model_state}"
         }

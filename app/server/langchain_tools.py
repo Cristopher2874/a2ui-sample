@@ -41,4 +41,5 @@ def get_restaurants(cuisine: str, location: str, count: int = 5) -> str:
 
 @tool
 def make_reservation(restaurant_name:str, people:int, special_instructions:str)->str:
+    """ Tool to make a reservation using name of the restaurant and extra details """
     return f"Table booked at {restaurant_name} for {people} people with special details added about: {special_instructions}"

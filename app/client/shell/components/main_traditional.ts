@@ -6,7 +6,7 @@ export class StaticModule extends LitElement {
   static styles = css`
     :host {
       display: block;
-      background: linear-gradient(135deg, #67e8f9 0%, #06b6d4 100%);
+      background: linear-gradient(135deg, #308792 0%, #0b788b 100%);
       border-radius: 1rem;
       padding: 2rem;
       color: white;
@@ -34,9 +34,10 @@ export class StaticModule extends LitElement {
 
   render() {
     return html`
-      <div class="title">Static app container</div>
+      <div class="title">Traditional app container</div>
       <div class="content">App using traditional methods</div>
-      <div class="status">Window for status</div>
+      <div class="status">This application is still in progess</div>
+      <div class="status">Objective is to emulate common traditional apps before AI</div>
     `
   }
 }

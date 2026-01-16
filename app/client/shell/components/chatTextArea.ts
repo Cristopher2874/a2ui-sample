@@ -12,15 +12,18 @@ export class ChatInput extends LitElement {
   accessor #inputValue = ""
 
   // Default server URL for sending messages
-  private defaultServerUrl = "http://localhost:10002";
+  private llmDefaultServer = "http://localhost:10002/llm";
+  private agentDefaultServer = "http://localhost:10002/agent";
 
   static styles = css`
     :host {
       display: block;
+      width: 100%;
     }
 
     .input-container {
       display: flex;
+      flex-direction: column;
       gap: 1rem;
       align-items: center;
     }
@@ -35,6 +38,7 @@ export class ChatInput extends LitElement {
       color: white;
       outline: none;
       font-family: 'Inter', sans-serif;
+      width: 100%;
     }
 
     input::placeholder {
@@ -42,10 +46,10 @@ export class ChatInput extends LitElement {
     }
 
     button {
-      width: 3.5rem;
+      width: 100%;
       height: 3.5rem;
-      border-radius: 50%;
-      background: #6366f1;
+      border-radius: 0.5rem;
+      background: #334155;
       border: none;
       color: white;
       font-size: 1.25rem;
@@ -57,19 +61,52 @@ export class ChatInput extends LitElement {
     }
 
     button:hover {
-      background: #4f46e5;
+      background: rgba(255, 255, 255, 0.5);
     }
 
     button:active {
       transform: scale(0.95);
     }
+
+    .send-buttons{
+      width: 100%;
+      display:flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      align-items: center;
+    }
   `
 
   private async handleSubmit() {
     if (this.#inputValue.trim() && this.router) {
-      console.log("[v0] Sending message:", this.#inputValue)
+      console.log("Sending message:", this.#inputValue)
       try {
-        await this.router.sendTextMessage(this.defaultServerUrl, this.#inputValue.trim());
+        this.router.sendTextMessage(this.llmDefaultServer, this.#inputValue.trim());
+        this.router.sendTextMessage(this.agentDefaultServer, this.#inputValue.trim());
+        this.#inputValue = ""
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
+    }
+  }
+  
+  private async handleSubmitLLM() {
+    if (this.#inputValue.trim() && this.router) {
+      console.log("Sending message:", this.#inputValue)
+      try {
+        this.router.sendTextMessage(this.llmDefaultServer, this.#inputValue.trim());
+        this.#inputValue = ""
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
+    }
+  }
+
+  private async handleSubmitAgent() {
+    if (this.#inputValue.trim() && this.router) {
+      console.log("Sending message:", this.#inputValue)
+      try {
+        this.router.sendTextMessage(this.agentDefaultServer, this.#inputValue.trim());
         this.#inputValue = ""
       } catch (error) {
         console.error("Failed to send message:", error);
@@ -93,9 +130,17 @@ export class ChatInput extends LitElement {
           @keypress=${this.handleKeyPress}
           placeholder="Top 5 Chinese restaurants in New York"
         />
-        <button @click=${this.handleSubmit}>
-          ▶
-        </button>
+        <div class="send-buttons">
+          <button @click=${this.handleSubmitLLM}>
+            Message to chat application ▶
+          </button>
+          <button @click=${this.handleSubmitAgent}>
+            Message to agent application ▶
+          </button>
+          <button @click=${this.handleSubmit}>
+            Messages to both applications ▶
+          </button>
+        </div>
       </div>
     `
   }

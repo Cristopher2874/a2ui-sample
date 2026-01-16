@@ -27,9 +27,7 @@ logger = logging.getLogger(__name__)
 class RestaurantLLMExecutor(AgentExecutor):
     """Restaurant LLM executor Example."""
 
-    def __init__(self, base_url: str):
-        # Instantiate two agents: one for UI and one for text-only.
-        # The appropriate one will be chosen at execution time.
+    def __init__(self):
         self.oci_ui_agent = OCIRestaurantLLM()
         self.oci_text_agent = OCIRestaurantLLM()
 
@@ -48,18 +46,7 @@ class RestaurantLLMExecutor(AgentExecutor):
         use_ui = try_activate_a2ui_extension(context)
 
         # Determine which agent to use based on whether the a2ui extension is active.
-        if use_ui:
-            # agent = self.ui_agent
-            agent = self.oci_ui_agent
-            logger.info(
-                "--- AGENT_EXECUTOR: A2UI extension is active. Using UI agent. ---"
-            )
-        else:
-            # agent = self.text_agent
-            agent = self.oci_text_agent
-            logger.info(
-                "--- AGENT_EXECUTOR: A2UI extension is not active. Using text agent. ---"
-            )
+        agent = self.oci_text_agent
 
         if context.message and context.message.parts:
             logger.info(
@@ -77,31 +64,8 @@ class RestaurantLLMExecutor(AgentExecutor):
                 else:
                     logger.info(f"  Part {i}: Unknown part type ({type(part.root)})")
 
-        if ui_event_part:
-            logger.info(f"Received a2ui ClientEvent: {ui_event_part}")
-            # Changed on event name due to new version, could change in the future
-            action = ui_event_part.get("name")
-            ctx = ui_event_part.get("context", {})
-
-            if action == "book_restaurant":
-                restaurant_name = ctx.get("restaurantName", "Unknown Restaurant")
-                address = ctx.get("address", "Address not provided")
-                image_url = ctx.get("imageUrl", "")
-                query = f"USER_WANTS_TO_BOOK: {restaurant_name}, Address: {address}, ImageURL: {image_url}"
-
-            elif action == "submit_booking":
-                restaurant_name = ctx.get("restaurantName", "Unknown Restaurant")
-                party_size = ctx.get("partySize", "Unknown Size")
-                reservation_time = ctx.get("reservationTime", "Unknown Time")
-                dietary_reqs = ctx.get("dietary", "None")
-                image_url = ctx.get("imageUrl", "")
-                query = f"User submitted a booking for {restaurant_name} for {party_size} people at {reservation_time} with dietary requirements: {dietary_reqs}. The image URL is {image_url}"
-
-            else:
-                query = f"User submitted an event: {action} with data: {ctx}"
-        else:
-            logger.info("No a2ui UI event part found. Falling back to text input.")
-            query = context.get_user_input()
+        logger.info("No a2ui UI event part found. Falling back to text input.")
+        query = context.get_user_input()
 
         logger.info(f"--- AGENT_EXECUTOR: Final query for LLM: '{query}' ---")
 
@@ -121,49 +85,13 @@ class RestaurantLLMExecutor(AgentExecutor):
                     new_agent_text_message(item["updates"], task.context_id, task.id),
                 )
                 continue
-
-            final_state = (
-                TaskState.completed
-                if action == "submit_booking"
-                else TaskState.input_required
-            )
-
+            
             content = item["content"]
             final_parts = []
-            if "---a2ui_JSON---" in content:
-                logger.info("Splitting final response into text and UI parts.")
-                text_content, json_string = content.split("---a2ui_JSON---", 1)
+            final_parts.append(Part(root=TextPart(text=content.strip())))
 
-                if text_content.strip():
-                    final_parts.append(Part(root=TextPart(text=text_content.strip())))
-
-                if json_string.strip():
-                    try:
-                        json_string_cleaned = (
-                            json_string.strip().lstrip("```json").rstrip("```").strip()
-                        )
-                        # The new protocol sends a stream of JSON objects.
-                        # For this example, we'll assume they are sent as a list in the final response.
-                        json_data = json.loads(json_string_cleaned)
-
-                        if isinstance(json_data, list):
-                            logger.info(
-                                f"Found {len(json_data)} messages. Creating individual DataParts."
-                            )
-                            for message in json_data:
-                                final_parts.append(create_a2ui_part(message))
-                        else:
-                            # Handle the case where a single JSON object is returned
-                            logger.info(
-                                "Received a single JSON object. Creating a DataPart."
-                            )
-                            final_parts.append(create_a2ui_part(json_data))
-
-                    except json.JSONDecodeError as e:
-                        logger.error(f"Failed to parse UI JSON: {e}")
-                        final_parts.append(Part(root=TextPart(text=json_string)))
-            else:
-                final_parts.append(Part(root=TextPart(text=content.strip())))
+            final_state = item['final_state']
+            final_parts.append(Part(root=TextPart(text=final_state.strip())))
 
             logger.info("--- FINAL PARTS TO BE SENT ---")
             for i, part in enumerate(final_parts):
@@ -173,12 +101,13 @@ class RestaurantLLMExecutor(AgentExecutor):
                 elif isinstance(part.root, DataPart):
                     logger.info(f"    - Data: {str(part.root.data)[:200]}...")
             logger.info("-----------------------------")
+
             final_state = TaskState.completed
 
             await updater.update_status(
                 final_state,
                 new_agent_parts_message(final_parts, task.context_id, task.id),
-                final=(final_state == TaskState.completed),
+                final=True,
             )
             break
 

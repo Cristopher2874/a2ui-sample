@@ -1,4 +1,3 @@
-import { SignalWatcher } from "@lit-labs/signals";
 import { provide } from "@lit/context";
 import { consume } from "@lit/context";
 import {
@@ -29,11 +28,6 @@ import "../ui/ui.js";
 // Configurations
 import { AppConfig } from "../configs/types.js";
 import { config as restaurantConfig } from "../configs/restaurant.js";
-import { styleMap } from "lit/directives/style-map.js";
-
-const configs: Record<string, AppConfig> = {
-  restaurant: restaurantConfig,
-};
 
 @customElement("dynamic-module")
 export class DynamicModule extends LitElement {
@@ -70,7 +64,17 @@ export class DynamicModule extends LitElement {
   @state()
   accessor #lastMessages: v0_8.Types.ServerToClientMessage[] = [];
 
+  @state()
+  accessor #loadingTextIndex = 0;
+
+  @state()
+  accessor #startTime: number | null = null;
+
+  @state()
+  accessor #elapsedTime: number | null = null;
+
   #processor = v0_8.Data.createSignalA2uiMessageProcessor();
+  #loadingInterval: number | undefined;
   #snackbar: Snackbar | undefined = undefined;
   #pendingSnackbarMessages: Array<{
     message: SnackbarMessage;
@@ -85,21 +89,29 @@ export class DynamicModule extends LitElement {
       }
 
       :host {
-        display: block;
-        width: 100%;
+        display: flex;
+        flex-direction: column;
         margin: 0;
-        padding: 10px;
-        min-height: 100%;
+        padding: 2rem;
         color: light-dark(var(--n-10), var(--n-90));
         font-family: var(--font-family);
-        border: 2px solid #000000;
-        border-radius: 10px;
+        border-radius: 1rem;
       }
 
       .title {
         font-size: 1.25rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
+      }
+
+      .stopwatch {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background: #1a2332;
+        border-radius: 0.25rem;
+        display: inline-block;
       }
 
       .subtitle {
@@ -170,11 +182,30 @@ export class DynamicModule extends LitElement {
       }
 
       .error {
+        flex-shrink: 0;
         color: var(--e-40);
         background-color: var(--e-95);
         border: 1px solid var(--e-80);
         padding: 16px;
         border-radius: 8px;
+      }
+
+      .title-section,
+      .status-section {
+        flex-shrink: 0;
+      }
+
+      .response-section {
+        overflow: visible;
+      }
+
+      .pending {
+        min-height: 200px;
+        overflow: visible;
+      }
+
+      .surfaces-container {
+        overflow: visible;
       }
 
       @keyframes fadeIn {
@@ -216,11 +247,43 @@ export class DynamicModule extends LitElement {
         this.updateStatusFromStreamingEvent(streamingEvent);
         this.processMessages(streamingEvent);
       });
+
+      this.router.addEventListener('message-sent', (event: any) => {
+        const sentEvent = event.detail;
+        if (sentEvent.serverUrl === this.config.serverUrl) {
+          this.#startTime = sentEvent.timestamp;
+          this.#elapsedTime = null;
+        }
+      });
+    }
+  }
+
+  #startLoadingAnimation() {
+    if (
+      Array.isArray(this.config.loadingText) &&
+      this.config.loadingText.length > 1
+    ) {
+      this.#loadingTextIndex = 0;
+      this.#loadingInterval = window.setInterval(() => {
+        this.#loadingTextIndex =
+          (this.#loadingTextIndex + 1) %
+          (this.config.loadingText as string[]).length;
+      }, 2000);
+    }
+  }
+
+  #stopLoadingAnimation() {
+    if (this.#loadingInterval) {
+      clearInterval(this.#loadingInterval);
+      this.#loadingInterval = undefined;
     }
   }
 
   // TODO: this method should go on a separate router type, missing to update
   private updateStatusFromStreamingEvent(event: any) {
+    // Only process events from this module's server URL
+    if (event.serverUrl !== this.config.serverUrl) return;
+
     // status updates messages
     if (event.kind === 'status-update') {
       const status = event.status;
@@ -243,6 +306,11 @@ export class DynamicModule extends LitElement {
       }else {
         this.status = serverMessage;
       }
+
+      // Calculate elapsed time when final response is received
+      if (hasMessage && this.#startTime) {
+        this.#elapsedTime = Date.now() - this.#startTime;
+      }
     }
     else if (event.kind === 'task') {
       this.status = "Task management event received";
@@ -256,6 +324,9 @@ export class DynamicModule extends LitElement {
   }
 
   private processMessages(event: any) {
+    // Only process events from this module's server URL
+    if (event.serverUrl !== this.config.serverUrl) return;
+
     // Check if this event contains A2UI messages
     if (event.kind === "status-update" && event.status?.message?.parts) {
       const newMessages: v0_8.Types.ServerToClientMessage[] = [];
@@ -317,10 +388,25 @@ export class DynamicModule extends LitElement {
   }
 
   render() {
-    return [
-      this.#maybeRenderError(),
-      this.#maybeRenderData(),
-    ]
+    return html`
+      <style>
+        :host {
+          background: ${this.color};
+        }
+      </style>
+      ${this.#elapsedTime !== null ? html`<div class="stopwatch">Response time: ${(this.#elapsedTime / 1000).toFixed(2)}s</div>` : ""}
+      ${this.#renderAppTitle()}
+      ${this.#maybeRenderError()}
+      ${this.#maybeRenderData()}
+      ${this.#renderStatusWindow()}
+    `;
+  }
+
+  #renderAppTitle() {
+    return html`<div class="title-section">
+        <div class="title">${this.title}</div>
+        ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
+      </div>`;
   }
 
   #maybeRenderError() {
@@ -331,23 +417,28 @@ export class DynamicModule extends LitElement {
 
   #maybeRenderData() {
     if (this.#requesting) {
-      return html` <div class="pending">
-        <div class="spinner"></div>
-        <div class="loading-text">Awaiting an answer...</div>
-      </div>`;
+      let text = "Awaiting an answer...";
+      if (this.config.loadingText) {
+        if (Array.isArray(this.config.loadingText)) {
+          text = this.config.loadingText[this.#loadingTextIndex];
+        } else {
+          text = this.config.loadingText;
+        }
+      }
+
+      return html`
+        <div class="pending">
+          <div class="spinner"></div>
+          <div class="loading-text">${text}</div>
+        </div>
+      `;
     }
 
     // Render A2UI surfaces
     const surfaces = this.#processor.getSurfaces();
     if (surfaces.size === 0) {
-      return html`<div class="a2ui-container">
-        <div class="title">${this.title}</div>
-        ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
+      return html`<div class="response-section">
         <div class="response">Ready to process A2UI messages...</div>
-        <div class="status">
-          <p>Status:</p>
-          <p class="status-text">${this.status}</p>
-        </div>
       </div>`;
     }
 
@@ -404,7 +495,16 @@ export class DynamicModule extends LitElement {
 
               // Send action back via router
               if (this.router) {
-                await this.router.sendA2UIMessage(this.config.serverUrl || "http://localhost:10002", message);
+                this.#requesting = true;
+                this.#startLoadingAnimation();
+                try {
+                  await this.router.sendA2UIMessage(this.config.serverUrl || "http://localhost:10002", message);
+                } catch (err) {
+                  this.snackbar(err as string, SnackType.ERROR);
+                } finally {
+                  this.#requesting = false;
+                  this.#stopLoadingAnimation();
+                }
               }
             }}
                 .surfaceId=${surfaceId}
@@ -414,14 +514,17 @@ export class DynamicModule extends LitElement {
         }
       )}
       </section>
-      <div class="status">
-        <p>Status:</p>
-        <p class="status-text">${this.status}</p>
-      </div>
     </div>`;
   }
 
-
+  #renderStatusWindow() {
+    return html`<div class="status-section">
+        <div class="status">
+          <p>Status:</p>
+          <p class="status-text">${this.status}</p>
+        </div>
+      </div>`;
+  }
 }
 
 declare global {
