@@ -785,7 +785,7 @@ A2UI_SCHEMA = r'''
 }
 '''
 
-from a2ui_components import RESTAURANT_UI_EXAMPLES
+from agent.a2ui_components import RESTAURANT_UI_EXAMPLES
 
 
 def get_ui_prompt(base_url: str, examples: str) -> str:

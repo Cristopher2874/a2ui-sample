@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "serve:shell": "cd shell && npm run dev",
-    "serve:agent:restaurant": "cd ../server && uv run .",
+    "serve:agent:restaurant": "cd ../server && uv run __main__.py",
     "demo:restaurant": "concurrently -k -n \"SHELL,REST\" -c \"magenta,blue\" \"npm run serve:shell\" \"npm run serve:agent:restaurant\""
   },
   "devDependencies": {

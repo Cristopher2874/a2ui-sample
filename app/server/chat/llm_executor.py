@@ -1,6 +1,4 @@
-import json
 import logging
-
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
@@ -18,8 +16,7 @@ from a2a.utils import (
     new_task,
 )
 from a2a.utils.errors import ServerError
-from a2ui.a2ui_extension import create_a2ui_part, try_activate_a2ui_extension
-from oci_llm import OCIRestaurantLLM
+from chat.oci_llm import OCIRestaurantLLM
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +34,10 @@ class RestaurantLLMExecutor(AgentExecutor):
         event_queue: EventQueue,
     ) -> None:
         query = ""
-        ui_event_part = None
-        action = None
 
         logger.info(
             f"--- Client requested extensions: {context.requested_extensions} ---"
         )
-        use_ui = try_activate_a2ui_extension(context)
 
         # Determine which agent to use based on whether the a2ui extension is active.
         agent = self.oci_text_agent

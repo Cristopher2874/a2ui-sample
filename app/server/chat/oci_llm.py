@@ -8,7 +8,7 @@ from langchain.messages import HumanMessage, AIMessage, AnyMessage, ToolMessage
 from langgraph.graph.state import CompiledStateGraph
 from langchain_core.runnables import RunnableConfig
 
-from langchain_tools import get_restaurants, make_reservation
+from chat.langchain_tools import get_restaurants, make_reservation
 
 logger = logging.getLogger(__name__)
 

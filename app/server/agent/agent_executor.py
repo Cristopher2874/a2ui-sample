@@ -33,7 +33,7 @@ from a2a.utils import (
 )
 from a2a.utils.errors import ServerError
 from a2ui.a2ui_extension import create_a2ui_part, try_activate_a2ui_extension
-from oci_agent import OCIRestaurantAgent
+from agent.oci_agent import OCIRestaurantAgent
 
 logger = logging.getLogger(__name__)
 

@@ -5,19 +5,18 @@ from collections.abc import AsyncIterable
 from typing import Any
 from langchain.agents import create_agent
 from langchain_oci import ChatOCIGenAI
-# from langchain_oci import ChatOCIOpenAI
 from langchain.messages import HumanMessage, AIMessage, AnyMessage, ToolMessage
 from langgraph.graph.state import CompiledStateGraph
 from langchain_core.runnables import RunnableConfig
 
 import jsonschema
-from prompt_builder import (
+from agent.prompt_builder import (
     A2UI_SCHEMA,
     RESTAURANT_UI_EXAMPLES,
     get_text_prompt,
     get_ui_prompt,
 )
-from langchain_tools import get_restaurants
+from agent.langchain_tools import get_restaurants
 
 logger = logging.getLogger(__name__)
 

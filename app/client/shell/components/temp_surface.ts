@@ -44,12 +44,10 @@ import "../ui/ui.js";
 // Configurations
 import { AppConfig } from "../configs/types.js";
 import { config as restaurantConfig } from "../configs/restaurant.js";
-import { config as contactsConfig } from "../configs/contacts.js";
 import { styleMap } from "lit/directives/style-map.js";
 
 const configs: Record<string, AppConfig> = {
   restaurant: restaurantConfig,
-  contacts: contactsConfig,
 };
 
 @customElement("a2ui-shell")

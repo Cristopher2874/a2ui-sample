@@ -5,16 +5,14 @@ import { createContext } from "@lit/context";
 export class A2UIRouter extends EventTarget {
   private clients = new Map<string, A2UIClient>();
 
-  /**
-   * Get or create an A2UIClient for the given server URL
-   */
+  // Get or create an A2UIClient for the given server URL
   private getClient(serverUrl: string): A2UIClient {
     if (!this.clients.has(serverUrl)) {
       const client = new A2UIClient(serverUrl);
 
       // Forward all streaming events from the client
       client.addEventListener('streaming-event', (event: any) => {
-        // Re-dispatch the event with server URL context
+        // Re-dispatch the event with server URL context. important to filter events
         this.dispatchEvent(new CustomEvent('streaming-event', {
           detail: {
             ...event.detail,
@@ -84,22 +82,18 @@ export class A2UIRouter extends EventTarget {
     return this.sendMessage(serverUrl, message);
   }
 
-  /**
-   * Get all active server URLs
-   */
+  // Gets all active server URLs (endpoints from starlette app)
   getActiveServers(): string[] {
     return Array.from(this.clients.keys());
   }
 
-  /**
-   * Clean up a client for a server URL
-   * @param serverUrl The server URL to clean up
-   */
+  // This function is in case the client needs to close SSe
   cleanup(serverUrl: string): void {
     const client = this.clients.get(serverUrl);
     if (client) {
       // Note: A2UIClient doesn't have a disconnect method yet
       // TODO: This is a placeholder for future cleanup
+      // Missing to add the logic to close server
       this.clients.delete(serverUrl);
     }
   }

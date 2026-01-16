@@ -22,9 +22,9 @@ from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore, BasePushNotificationSender, InMemoryPushNotificationConfigStore
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from a2ui.a2ui_extension import get_a2ui_agent_extension
-from oci_agent import OCIRestaurantAgent
-from agent_executor import RestaurantAgentExecutor
-from llm_executor import RestaurantLLMExecutor
+from agent.oci_agent import OCIRestaurantAgent
+from agent.agent_executor import RestaurantAgentExecutor
+from chat.llm_executor import RestaurantLLMExecutor
 from dotenv import load_dotenv
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware

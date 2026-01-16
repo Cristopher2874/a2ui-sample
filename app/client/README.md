@@ -12,3 +12,8 @@ npm run demo:restaurant
 ```
 
 `package.json` Commands are optimized for **Windows** using `shx` package, change to linux if required.
+
+## Structure
+
+1. [Components](./shell/components/) this folder contains the main application content for the three different calls, including the chat text area to send queries.
+2. [Services](./shell/services/) this folder is critical since is routing text and a2ui messages to the different server endpoints, in charge of packing and streaming of events.
