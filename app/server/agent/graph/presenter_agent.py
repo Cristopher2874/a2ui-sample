@@ -37,9 +37,9 @@ AGENT_INSTRUCTION = """
 class PresenterAgent:
     """ Agent that generates A2UI schemas from restaurant data """
 
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, use_ui: bool = False):
         self.base_url = base_url
-        self.use_ui = True
+        self.use_ui = use_ui
         self._user_id = "presenter_agent"
         self._agent = self._build_agent()
 

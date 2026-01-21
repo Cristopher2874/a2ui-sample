@@ -1,7 +1,7 @@
 [
     {
         "name": "Marte",
-        "detail": "Cozy Italian cafe with espresso and pastries.",
+        "detail": "Bubble tea and Asian-inspired drinks.",
         "imageUrl": "http://localhost:10002/static/classic tiramasu.png",
         "rating": "★★★★☆",
         "infoLink": "[More Info](https://www.martecafe.com/)",
@@ -16,11 +16,11 @@
         "address": "200 Lafayette St, New York, NY 10012"
     },
     {
-        "name": "Tipioka",
+        "name": "ItalianCoffe",
         "detail": "Bubble tea and Asian-inspired drinks.",
         "imageUrl": "http://localhost:10002/static/italian3.png",
         "rating": "★★★★☆",
-        "infoLink": "[More Info](https://www.tapiocastore.com/)",
+        "infoLink": "[More Info](https://www.italiancoffee.com/)",
         "address": "23 Pell St, New York, NY 10013"
     }
 ]

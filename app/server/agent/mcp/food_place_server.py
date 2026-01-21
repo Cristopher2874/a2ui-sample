@@ -22,7 +22,7 @@ async def get_restaurants(cuisine_type: str, city:str) -> list[str]:
 async def get_cafes(city:str) -> list[str]:
     """ Finds different cafes depending on the city selected """
     
-    cafe_list = ["Marte", "Starbucks", "Tipioka"]
+    cafe_list = ["Marte", "Starbucks", "ItalianCoffe"]
 
     return cafe_list
 

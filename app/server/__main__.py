@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import logging
-import os
 import httpx
 
 import click
@@ -22,14 +21,18 @@ from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore, BasePushNotificationSender, InMemoryPushNotificationConfigStore
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from a2ui.a2ui_extension import get_a2ui_agent_extension
-from agent.oci_agent import OCIRestaurantAgent
-from agent.agent_executor import RestaurantAgentExecutor
-from chat.llm_executor import RestaurantLLMExecutor
-from dotenv import load_dotenv
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
+from agent.oci_agent import OCIRestaurantAgent
+from agent.agent_executor import RestaurantAgentExecutor
+from chat.llm_executor import RestaurantLLMExecutor
+from chat.oci_llm import OCIRestaurantLLM
+# from agent.graph_executor import RestaurantGraphExecutor
+# from agent.graph.restaurant_graph import RestaurantGraph
+
+from dotenv import load_dotenv
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
@@ -97,8 +100,8 @@ def main(host, port):
             description="This LLM agent helps find restaurants based on user criteria.",
             url=llm_base_url,
             version="1.0.0",
-            default_input_modes=OCIRestaurantAgent.SUPPORTED_CONTENT_TYPES,
-            default_output_modes=OCIRestaurantAgent.SUPPORTED_CONTENT_TYPES,
+            default_input_modes=OCIRestaurantLLM.SUPPORTED_CONTENT_TYPES,
+            default_output_modes=OCIRestaurantLLM.SUPPORTED_CONTENT_TYPES,
             capabilities=capabilities,
             skills=[skill],
         )
