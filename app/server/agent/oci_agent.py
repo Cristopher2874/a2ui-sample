@@ -8,6 +8,8 @@ from langchain_oci import ChatOCIGenAI
 from langchain.messages import HumanMessage, AIMessage, AnyMessage, ToolMessage
 from langgraph.graph.state import CompiledStateGraph
 from langchain_core.runnables import RunnableConfig
+from dotenv import load_dotenv
+load_dotenv()
 
 import jsonschema
 from agent.prompt_builder import (

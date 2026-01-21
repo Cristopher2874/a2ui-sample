@@ -38,3 +38,16 @@ def get_restaurants(cuisine: str, location: str, count: int = 5) -> str:
             logger.error(f"  - Error: Failed to decode JSON from {file_path}")
 
     return json.dumps(items)
+
+@tool
+def get_weather(zipcode:int, date:str) -> dict[str,bool | int]:
+    """ Gets the weather for a given city zipcode and date in format yyyy-mm-dd """
+    
+    # This is simple hardcoded data, could use zip code to fetch weather API and get real results
+    city_weather = {
+        "rain": True,
+        "min_temperature": "50 f",
+        "max_temperature": "62 f"
+    }
+
+    return city_weather
