@@ -16,7 +16,7 @@ class RestaurantGraph:
     """ Graph to call the agent chain """
 
     SUPPORTED_CONTENT_TYPES = ["text", "text/plain", "text/event-stream"]
-    CONTENT_TRUNCATION_LENGTH = 80
+    CONTENT_TRUNCATION_LENGTH = 50
 
     def __init__(self, base_url:str, use_ui:bool = False):
         self._place_finder = RestaurantFinderAgent()
@@ -46,33 +46,36 @@ class RestaurantGraph:
         tool_name = str(message.tool_calls[0].get('name'))
         tool_args = str(message.tool_calls[0].get('args'))
         agent_name = str(message.name) if message.name else ""
-        return f"Agent {agent_name} called tool: {tool_name} with args {tool_args}"
+        # return f"Agent {agent_name} called tool: {tool_name} with args {tool_args}"
+        return f"Agent {agent_name} called tool: {tool_name}"
 
     def _format_tool_message(self, message: ToolMessage) -> str:
         tool_name = str(message.name)
         status_content = str(message.content)
-        return f"Tool {tool_name} responded with:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
+        return f"Tool {tool_name} responded"
 
     def _format_ai_message(self, message: AIMessage, model_token_count: int) -> tuple[str, int, str]:
         status_content = str(message.content)
         model_id = str(message.response_metadata.get("model_id"))
         total_tokens_on_call = int(message.response_metadata.get("total_tokens", '0'))
         updated_token_count = model_token_count + total_tokens_on_call
-        agent_name = str(message.name)
+        agent_name = str(message.name) if message.name else "GRAPH"
         model_data = f"""
             model_id: {model_id},
             total_tokens_on_call: {str(updated_token_count)}
         """
-        formatted = f"{agent_name} response:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}...\n\nAgent metadata:\n{model_data}"
+        # formatted = f"{agent_name} response:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}...\n\nAgent metadata:\n{model_data}"
+        formatted = f"{agent_name} responded"
         return formatted, updated_token_count, formatted
 
     def _format_human_message(self, message: HumanMessage, node_name: str) -> str:
         status_content = str(message.content)
-        return f"Query in process at {node_name}:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
+        # return f"Query in process at {node_name}:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
+        return f"{node_name} processing"
 
     def _format_other_message(self, message: AnyMessage, node_name: str) -> str:
         status_content = str(message.content)
-        return f"Calling node {node_name} with state:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
+        return f"Calling node {node_name}"
 
     async def call_restaurant_graph(self, query, session_id) -> AsyncIterable[dict[str, Any]]:
         current_message = {"messages":[HumanMessage(query)]}

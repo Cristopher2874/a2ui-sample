@@ -53,7 +53,7 @@ export class DynamicModule extends LitElement {
   accessor response = ""
 
   @state()
-  accessor status = "Ready"
+  accessor status: Array<{timestamp: string, message: string, type: string}> = [{timestamp: new Date().toISOString(), message: "Ready", type: "initial"}]
 
   @state()
   accessor #requesting = false;
@@ -73,8 +73,12 @@ export class DynamicModule extends LitElement {
   @state()
   accessor #elapsedTime: number | null = null;
 
+  @state()
+  accessor #currentElapsedTime: number | null = null;
+
   #processor = v0_8.Data.createSignalA2uiMessageProcessor();
   #loadingInterval: number | undefined;
+  #stopwatchInterval: number | undefined;
   #snackbar: Snackbar | undefined = undefined;
   #pendingSnackbarMessages: Array<{
     message: SnackbarMessage;
@@ -133,17 +137,28 @@ export class DynamicModule extends LitElement {
 
       .status {
         font-size: 0.875rem;
-        padding: 1rem;
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
         background: rgba(255, 255, 255, 0.1);
         border-radius: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
       }
 
       .status p {
         margin: 0.25rem 0;
       }
 
-      .status-text {
-        white-space: pre-wrap;
+      .status-item {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 0.8rem;
+        line-height: 1.4;
+      }
+
+      .status-item:last-child {
+        border-bottom: none;
       }
 
       .surfaces-container {
@@ -253,6 +268,8 @@ export class DynamicModule extends LitElement {
         if (sentEvent.serverUrl === this.config.serverUrl) {
           this.#startTime = sentEvent.timestamp;
           this.#elapsedTime = null;
+          this.#currentElapsedTime = 0;
+          this.#startStopwatch();
         }
       });
     }
@@ -279,6 +296,24 @@ export class DynamicModule extends LitElement {
     }
   }
 
+  #startStopwatch() {
+    this.#stopStopwatch(); // Clear any existing timer
+    this.#stopwatchInterval = window.setInterval(() => {
+      if (this.#startTime && this.#elapsedTime === null) {
+        this.#currentElapsedTime = Date.now() - this.#startTime;
+        this.requestUpdate(); // Trigger re-render
+      }
+    }, 100);
+  }
+
+  #stopStopwatch() {
+    if (this.#stopwatchInterval) {
+      clearInterval(this.#stopwatchInterval);
+      this.#stopwatchInterval = undefined;
+    }
+    this.#currentElapsedTime = null;
+  }
+
   // TODO: this method should go on a separate router type, missing to update
   private updateStatusFromStreamingEvent(event: any) {
     // Only process events from this module's server URL
@@ -302,24 +337,25 @@ export class DynamicModule extends LitElement {
       console.log("End of message update")
 
       if (state == 'failed'){
-        this.status = "Task failed - An error occurred"
+        this.status = [...this.status, {timestamp: new Date().toISOString(), message: "Task failed - An error occurred", type: event.kind}]
       }else {
-        this.status = serverMessage;
+        this.status = [...this.status, {timestamp: new Date().toISOString(), message: serverMessage, type: event.kind}];
       }
 
       // Calculate elapsed time when final response is received
       if (hasMessage && this.#startTime) {
         this.#elapsedTime = Date.now() - this.#startTime;
+        this.#stopStopwatch();
       }
     }
     else if (event.kind === 'task') {
-      this.status = "Task management event received";
+      this.status = [...this.status, {timestamp: new Date().toISOString(), message: "Task management event received", type: event.kind}];
     }
     else if (event.kind === 'message') {
-      this.status = "Direct message received";
+      this.status = [...this.status, {timestamp: new Date().toISOString(), message: "Direct message received", type: event.kind}];
     }
     else {
-      this.status = `Event type: ${event.kind || 'unknown'}`;
+      this.status = [...this.status, {timestamp: new Date().toISOString(), message: `Event type: ${event.kind || 'unknown'}`, type: event.kind}];
     }
   }
 
@@ -394,7 +430,7 @@ export class DynamicModule extends LitElement {
           background: ${this.color};
         }
       </style>
-      ${this.#elapsedTime !== null ? html`<div class="stopwatch">Response time: ${(this.#elapsedTime / 1000).toFixed(2)}s</div>` : ""}
+      ${(this.#elapsedTime !== null || this.#currentElapsedTime !== null) ? html`<div class="stopwatch">Response time: ${((this.#elapsedTime || this.#currentElapsedTime || 0) / 1000).toFixed(2)}s</div>` : ""}
       ${this.#renderAppTitle()}
       ${this.#maybeRenderError()}
       ${this.#maybeRenderData()}
@@ -520,8 +556,13 @@ export class DynamicModule extends LitElement {
   #renderStatusWindow() {
     return html`<div class="status-section">
         <div class="status">
-          <p>Status:</p>
-          <p class="status-text">${this.status}</p>
+          ${repeat(
+            this.status,
+            (item) => item.timestamp,
+            (item) => html`<div class="status-item">
+              ${new Date(item.timestamp).toLocaleTimeString()} - ${item.message}
+            </div>`
+          )}
         </div>
       </div>`;
   }
