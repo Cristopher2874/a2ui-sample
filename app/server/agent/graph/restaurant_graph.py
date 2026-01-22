@@ -1,8 +1,7 @@
 from collections.abc import AsyncIterable
 from typing import Any
-from langgraph.graph import MessagesState, StateGraph
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph import MessagesState
+from langgraph.graph import StateGraph, START, END, MessagesState
+from langgraph.checkpoint.memory import InMemorySaver
 from langchain.messages import HumanMessage, AIMessage, AnyMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 
@@ -17,6 +16,7 @@ class RestaurantGraph:
     """ Graph to call the agent chain """
 
     SUPPORTED_CONTENT_TYPES = ["text", "text/plain", "text/event-stream"]
+    CONTENT_TRUNCATION_LENGTH = 80
 
     def __init__(self, base_url:str, use_ui:bool = False):
         self._place_finder = RestaurantFinderAgent()
@@ -27,66 +27,95 @@ class RestaurantGraph:
         await self._place_finder.initialize()
         await self._data_finder.initialize()
 
+        checkpointer = InMemorySaver()
+
         graph_builder = StateGraph(MessagesState)
 
-        graph_builder.add_node("search",self._place_finder)
-        graph_builder.add_node("data",self._data_finder)
-        graph_builder.add_node("presenter", self._presenter_agent)
+        graph_builder.add_node("place_finder_agent",self._place_finder)
+        graph_builder.add_node("place_data_agent",self._data_finder)
+        graph_builder.add_node("presenter_agent", self._presenter_agent)
 
-        graph_builder.add_edge(START, "search")
-        graph_builder.add_edge("search","data")
-        graph_builder.add_edge("data", "presenter")
-        graph_builder.add_edge("presenter", END)
+        graph_builder.add_edge(START, "place_finder_agent")
+        graph_builder.add_edge("place_finder_agent","place_data_agent")
+        graph_builder.add_edge("place_data_agent", "presenter_agent")
+        graph_builder.add_edge("presenter_agent", END)
 
-        self._restaurant_graph = graph_builder.compile()
+        self._restaurant_graph = graph_builder.compile(checkpointer=checkpointer)
+
+    def _format_tool_call_message(self, message: AnyMessage) -> str:
+        tool_name = str(message.tool_calls[0].get('name'))
+        tool_args = str(message.tool_calls[0].get('args'))
+        agent_name = str(message.name) if message.name else ""
+        return f"Agent {agent_name} called tool: {tool_name} with args {tool_args}"
+
+    def _format_tool_message(self, message: ToolMessage) -> str:
+        tool_name = str(message.name)
+        status_content = str(message.content)
+        return f"Tool {tool_name} responded with:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
+
+    def _format_ai_message(self, message: AIMessage, model_token_count: int) -> tuple[str, int, str]:
+        status_content = str(message.content)
+        model_id = str(message.response_metadata.get("model_id"))
+        total_tokens_on_call = int(message.response_metadata.get("total_tokens", '0'))
+        updated_token_count = model_token_count + total_tokens_on_call
+        agent_name = str(message.name)
+        model_data = f"""
+            model_id: {model_id},
+            total_tokens_on_call: {str(updated_token_count)}
+        """
+        formatted = f"{agent_name} response:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}...\n\nAgent metadata:\n{model_data}"
+        return formatted, updated_token_count, formatted
+
+    def _format_human_message(self, message: HumanMessage, node_name: str) -> str:
+        status_content = str(message.content)
+        return f"Query in process at {node_name}:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
+
+    def _format_other_message(self, message: AnyMessage, node_name: str) -> str:
+        status_content = str(message.content)
+        return f"Calling node {node_name} with state:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
 
     async def call_restaurant_graph(self, query, session_id) -> AsyncIterable[dict[str, Any]]:
-        config:RunnableConfig = {"run_id":str("thread-1234")}
         current_message = {"messages":[HumanMessage(query)]}
-        config:RunnableConfig = {"run_id":str(session_id)}
+        config:RunnableConfig = {"run_id":str(session_id), "configurable":{"thread_id":str(session_id)}}
         final_response_content = None
         final_model_state = None
         model_token_count = 0
+        node_name = "START"
 
-        # Test
+        # Stream graph execution
         async for chunk in self._restaurant_graph.astream(
             input=current_message,
             config=config,
             stream_mode='values',
             subgraphs=True
         ):
-            latest_update: AnyMessage = chunk[1]['messages'][-1]
-            final_response_content = latest_update.content
+            latest_message: AnyMessage = chunk[1]['messages'][-1]
+            final_response_content = latest_message.content
 
-            if hasattr(latest_update, 'tool_calls') and latest_update.tool_calls:
-                tool_name = str(latest_update.tool_calls[0].get('name'))
-                tool_args = str(latest_update.tool_calls[0].get('args'))
-                latest_update = f"Model calling tool: {tool_name} with args {tool_args}"
-            elif isinstance(latest_update,ToolMessage):
-                tool_name = str(latest_update.name)
-                status_content = str(latest_update.content)
-                latest_update = f"Tool {tool_name} responded with:\n{status_content[:100]}...\n\nInformation passed to agent to build response"
-            elif isinstance(latest_update, AIMessage):
-                status_content = str(latest_update.content)
-                model_id = str(latest_update.response_metadata.get("model_id"))
-                total_tokens_on_call = int(latest_update.response_metadata.get("total_tokens"))
-                model_token_count = model_token_count + total_tokens_on_call
-                agent_name = str(latest_update.name)
-                model_data = f"""
-                    model_id: {model_id},
-                    agent_name: {agent_name},
-                    total_tokens_on_call: {str(model_token_count)}
-                """
-                latest_update = f"Agent current response:\n{status_content[:100]}...\n\nAgent metadata:\n{model_data}"
-                final_model_state = latest_update
+            # Format the message based on its type
+            if hasattr(latest_message, 'tool_calls') and latest_message.tool_calls:
+                formatted_update = self._format_tool_call_message(latest_message)
+            elif isinstance(latest_message, ToolMessage):
+                formatted_update = self._format_tool_message(latest_message)
+            elif isinstance(latest_message, AIMessage):
+                formatted_update, model_token_count, final_model_state = self._format_ai_message(latest_message, model_token_count)
+            elif isinstance(latest_message, HumanMessage):
+                # For human messages, update node_name from state before formatting
+                state = self._restaurant_graph.get_state(config=config, subgraphs=True)
+                node_name = str(state.next[0]) if state.next else "GRAPH"
+                formatted_update = self._format_human_message(latest_message, node_name)
             else:
-                status_content = str(latest_update.content)
-                latest_update = f"Processing task, current state:\n{status_content[:100]}..."
+                formatted_update = self._format_other_message(latest_message, node_name)
 
-            # Yield intermediate updates on every attempt
+            # Update node_name from graph state for non-human messages
+            if not isinstance(latest_message, HumanMessage):
+                state = self._restaurant_graph.get_state(config=config, subgraphs=True)
+                node_name = str(state.next[0]) if state.next else "GRAPH"
+
+            # Yield intermediate updates
             yield {
                 "is_task_complete": False,
-                "updates": latest_update
+                "updates": formatted_update
             }
         
         # Update the final response to contain the model_status.
@@ -96,5 +125,24 @@ class RestaurantGraph:
 
         yield {
             "is_task_complete": True,
-            "updates": final_response_content
+            "content": final_response_content
         }
+
+# Testing
+async def main():
+    graph = RestaurantGraph(base_url="localhost", use_ui=True)
+
+    await graph.build_graph()
+
+    async for event in graph.call_restaurant_graph("Top 5 chinese restaurants in Ny?", "1234"):
+        if event['is_task_complete']:
+            print(f"\nFinal event: {event}")
+        else:
+            if len(event['updates']) < 200:
+                print(event)
+            else:
+                print(event['updates'][:200])
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())

@@ -29,8 +29,8 @@ from agent.oci_agent import OCIRestaurantAgent
 from agent.agent_executor import RestaurantAgentExecutor
 from chat.llm_executor import RestaurantLLMExecutor
 from chat.oci_llm import OCIRestaurantLLM
-# from agent.graph_executor import RestaurantGraphExecutor
-# from agent.graph.restaurant_graph import RestaurantGraph
+from agent.graph_executor import RestaurantGraphExecutor
+from agent.graph.restaurant_graph import RestaurantGraph
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -70,13 +70,13 @@ def main(host, port):
             description="This agent helps find restaurants based on user criteria.",
             url=agent_base_url,
             version="1.0.0",
-            default_input_modes=OCIRestaurantAgent.SUPPORTED_CONTENT_TYPES,
-            default_output_modes=OCIRestaurantAgent.SUPPORTED_CONTENT_TYPES,
+            default_input_modes=RestaurantGraph.SUPPORTED_CONTENT_TYPES,
+            default_output_modes=RestaurantGraph.SUPPORTED_CONTENT_TYPES,
             capabilities=capabilities,
             skills=[skill],
         )
 
-        agent_executor = RestaurantAgentExecutor(base_url=agent_base_url)
+        agent_executor = RestaurantGraphExecutor(base_url=agent_base_url)
 
         httpx_client = httpx.AsyncClient()
         agent_push_config_store = InMemoryPushNotificationConfigStore()

@@ -23,14 +23,15 @@ class DataAgent:
     Consider that caffeteria or restaurant data should be complete, use tools as required according to context.
     Make sure to use the exact restaurant names from information."""
 
-    def __init__(self):
-        self._name = "data_agent"
+    def __init__(self, oci_model:str = "xai.grok-4-fast-non-reasoning"):
+        self.oci_model = oci_model
+        self._name = "place_data_agent"
         self._client = self._init_oci_client()
         self.agent = None
 
     def _init_oci_client(self):
         client = ChatOCIGenAI(
-            model_id="openai.gpt-4.1",
+            model_id=self.oci_model,
             service_endpoint=os.getenv("SERVICE_ENDPOINT"),
             compartment_id=os.getenv("COMPARTMENT_ID"),
             model_kwargs={"temperature":0.7},
@@ -45,11 +46,11 @@ class DataAgent:
     async def __call__(self, state):
         # Message cleanup
         user_query = str(state['messages'][0].content)
-        last_model_response = str(state['messages'][-1].content)
+        last_model_response = str(state['messages'][-1])
         messages = {
             'messages':[
                 HumanMessage(user_query),
-                AIMessage(last_model_response)
+                last_model_response
             ]
         }
         return await self.agent.ainvoke(messages)

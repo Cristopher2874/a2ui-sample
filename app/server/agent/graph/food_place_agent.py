@@ -20,14 +20,15 @@ class RestaurantFinderAgent:
     Return your answer in the best way possible so other LLM can read the information and proceed.
     Only return a list of the names of restaurants/caffeterias found."""
 
-    def __init__(self):
-        self._name = "cuisine_agent"
+    def __init__(self, oci_model:str = "xai.grok-4-fast-non-reasoning"):
+        self.oci_model = oci_model
+        self._name = "place_finder_agent"
         self._client = self._init_oci_client()
         self.agent = None
 
     def _init_oci_client(self):
         client = ChatOCIGenAI(
-            model_id="openai.gpt-4.1",
+            model_id=self.oci_model,
             service_endpoint=os.getenv("SERVICE_ENDPOINT"),
             compartment_id=os.getenv("COMPARTMENT_ID"),
             model_kwargs={"temperature":0.7},

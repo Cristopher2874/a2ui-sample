@@ -1,13 +1,10 @@
 import json
 import logging
 import os
-from collections.abc import AsyncIterable
-from typing import Any
 from langchain.agents import create_agent
 from langchain_oci import ChatOCIGenAI
-from langchain.messages import HumanMessage, AIMessage, AnyMessage, ToolMessage
+from langchain.messages import HumanMessage, AIMessage
 from langgraph.graph.state import CompiledStateGraph
-from langchain_core.runnables import RunnableConfig
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -15,10 +12,8 @@ import jsonschema
 from agent.prompt_builder import (
     A2UI_SCHEMA,
     RESTAURANT_UI_EXAMPLES,
-    get_text_prompt,
     get_ui_prompt,
 )
-from agent.langchain_tools import get_restaurants
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +32,8 @@ AGENT_INSTRUCTION = """
 class PresenterAgent:
     """ Agent that generates A2UI schemas from restaurant data """
 
-    def __init__(self, base_url: str, use_ui: bool = False):
+    def __init__(self, base_url: str, use_ui: bool = False, oci_model:str = "xai.grok-4"):
+        self.oci_model = oci_model
         self.base_url = base_url
         self.use_ui = use_ui
         self._user_id = "presenter_agent"
@@ -65,7 +61,7 @@ class PresenterAgent:
         )
 
         oci_llm = ChatOCIGenAI(
-            model_id="openai.gpt-4.1",
+            model_id=self.oci_model,
             service_endpoint=os.getenv("SERVICE_ENDPOINT"),
             compartment_id=os.getenv("COMPARTMENT_ID"),
             model_kwargs={"temperature":0.7},
