@@ -8,6 +8,7 @@ from langchain_core.runnables import RunnableConfig
 from agent.graph.food_place_agent import RestaurantFinderAgent
 from agent.graph.data_agent import DataAgent
 from agent.graph.presenter_agent import PresenterAgent
+from agent.graph.struct import AgentConfig, RestaurantGraphException
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -18,10 +19,13 @@ class RestaurantGraph:
     SUPPORTED_CONTENT_TYPES = ["text", "text/plain", "text/event-stream"]
     CONTENT_TRUNCATION_LENGTH = 50
 
-    def __init__(self, base_url:str, use_ui:bool = False):
-        self._place_finder = RestaurantFinderAgent()
-        self._data_finder = DataAgent()
-        self._presenter_agent = PresenterAgent(base_url, use_ui)
+    def __init__(self, base_url:str, use_ui:bool = False, graph_configuration: dict[str, AgentConfig] = None):
+        if not graph_configuration:
+            raise RestaurantGraphException()
+
+        self._place_finder = RestaurantFinderAgent(graph_configuration["place_finder_agent"])
+        self._data_finder = DataAgent(graph_configuration["data_finder_agent"])
+        self._presenter_agent = PresenterAgent(base_url, use_ui, graph_configuration["presenter_agent"])
 
     async def build_graph(self):
         await self._place_finder.initialize()
@@ -131,7 +135,7 @@ class RestaurantGraph:
             "content": final_response_content
         }
 
-# Testing
+#region Testing
 async def main():
     graph = RestaurantGraph(base_url="localhost", use_ui=True)
 

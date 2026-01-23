@@ -14,6 +14,7 @@ from agent.prompt_builder import (
     RESTAURANT_UI_EXAMPLES,
     get_ui_prompt,
 )
+from agent.graph.struct import AgentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +33,17 @@ AGENT_INSTRUCTION = """
 class PresenterAgent:
     """ Agent that generates A2UI schemas from restaurant data """
 
-    def __init__(self, base_url: str, use_ui: bool = False, oci_model:str = "xai.grok-4"):
-        self.oci_model = oci_model
+    def __init__(self, base_url: str, use_ui: bool = False, config: AgentConfig = None):
+        if config:
+            self.oci_model = config.model
+            self.model_temperature = config.temperature
+            self.agent_name = config.name
+        else:
+            self.oci_model = "xai.grok-4"
+            self.model_temperature = 0.7
+            self.agent_name = "presenter_agent"
         self.base_url = base_url
         self.use_ui = use_ui
-        self._user_id = "presenter_agent"
         self._agent = self._build_agent()
 
         # Load the A2UI_SCHEMA string into a Python object for validation
@@ -64,7 +71,7 @@ class PresenterAgent:
             model_id=self.oci_model,
             service_endpoint=os.getenv("SERVICE_ENDPOINT"),
             compartment_id=os.getenv("COMPARTMENT_ID"),
-            model_kwargs={"temperature":0.7},
+            model_kwargs={"temperature": self.model_temperature},
             auth_profile=os.getenv("AUTH_PROFILE"),
         )
 
@@ -72,7 +79,7 @@ class PresenterAgent:
             model=oci_llm,
             tools=[],
             system_prompt=instruction,
-            name="presenter_agent"
+            name=self.agent_name
         )
     
     async def __call__(self, state):

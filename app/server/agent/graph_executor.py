@@ -1,5 +1,8 @@
 import json
 import logging
+import copy
+from dataclasses import asdict
+import jsonschema
 
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
@@ -20,17 +23,31 @@ from a2a.utils import (
 from a2a.utils.errors import ServerError
 from a2ui.a2ui_extension import create_a2ui_part, try_activate_a2ui_extension
 from agent.graph.restaurant_graph import RestaurantGraph
+from agent.graph.struct import AgentConfig, CONFIG_SCHEMA, DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
-
 
 class RestaurantGraphExecutor(AgentExecutor):
     """Executor of a full graph"""
 
     def __init__(self, base_url: str):
-        # Two graphs, for ui and text fallback
-        self._ui_restaurant_graph = RestaurantGraph(base_url=base_url, use_ui=True)
-        self._restaurant_graph = RestaurantGraph(base_url=base_url, use_ui=False)
+        self.default_config = copy.deepcopy(DEFAULT_CONFIG)
+        self.current_config = copy.deepcopy(self.default_config)
+        self.base_url = base_url
+        self._recreate_graphs()
+
+    def _recreate_graphs(self):
+        """Recreate graph instances with current config"""
+        self._ui_restaurant_graph = RestaurantGraph(
+            base_url=self.base_url, 
+            use_ui=True, 
+            graph_configuration=self.current_config
+        )
+        self._restaurant_graph = RestaurantGraph(
+            base_url=self.base_url, 
+            use_ui=False, 
+            graph_configuration=self.current_config
+        )
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         query = ""
@@ -168,3 +185,46 @@ class RestaurantGraphExecutor(AgentExecutor):
         self, request: RequestContext, event_queue: EventQueue
     ) -> Task | None:
         raise ServerError(error=UnsupportedOperationError())
+
+    # region helper config
+    def get_config(self) -> dict:
+        """Get current configuration as dict"""
+        return {k: asdict(v) for k, v in self.current_config.items()}
+
+    def update_config(self, new_config: dict) -> tuple[bool, str]:
+        """
+        Update configuration with validation
+        Returns (success, error_message)
+        """
+        try:
+            # Validate JSON schema
+            jsonschema.validate(instance=new_config, schema=CONFIG_SCHEMA)
+
+            # Convert to AgentConfig objects
+            config_objects = {}
+            for agent_name, agent_data in new_config.items():
+                config_objects[agent_name] = AgentConfig(**agent_data)
+
+            # Update current config
+            self.current_config = config_objects
+
+            # Recreate graphs with new config
+            self._recreate_graphs()
+
+            logger.info("Configuration updated successfully")
+            return True, ""
+
+        except jsonschema.ValidationError as e:
+            error_msg = f"Configuration validation failed: {e.message}"
+            logger.error(error_msg)
+            return False, error_msg
+        except Exception as e:
+            error_msg = f"Configuration update failed: {str(e)}"
+            logger.error(error_msg)
+            return False, error_msg
+
+    def reset_config(self) -> None:
+        """Reset configuration to default"""
+        self.current_config = copy.deepcopy(self.default_config)
+        self._recreate_graphs()
+        logger.info("Configuration reset to default")

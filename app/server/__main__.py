@@ -24,6 +24,8 @@ from a2ui.a2ui_extension import get_a2ui_agent_extension
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
+from starlette.responses import JSONResponse
+from starlette.requests import Request
 
 from agent.oci_agent import OCIRestaurantAgent
 from agent.agent_executor import RestaurantAgentExecutor
@@ -63,7 +65,7 @@ def main(host, port):
 
         base_url = f"http://{host}:{port}"
 
-        # Agent executor setup
+        #region Agent executor setup
         agent_base_url = f"{base_url}/agent"
         agent_card = AgentCard(
             name="Restaurant Agent",
@@ -93,7 +95,7 @@ def main(host, port):
         )
         agent_app = agent_server.build()
 
-        # LLM executor setup
+        #region LLM executor setup
         llm_base_url = f"{base_url}/llm"
         llm_card = AgentCard(
             name="Restaurant LLM Agent",
@@ -122,7 +124,7 @@ def main(host, port):
         )
         llm_app = llm_server.build()
 
-        # Main app setup
+        #region main app setup
         main_app = Starlette()
 
         main_app.add_middleware(
@@ -132,6 +134,31 @@ def main(host, port):
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+        #region config endpoints
+        async def get_config(request: Request):
+            config = agent_executor.get_config()
+            return JSONResponse(config)
+
+        async def post_config(request: Request):
+            try:
+                data = await request.json()
+                success, error = agent_executor.update_config(data)
+                if success:
+                    return JSONResponse({"status": "success", "message": "Configuration updated"})
+                else:
+                    return JSONResponse({"status": "error", "message": error}, status_code=400)
+            except Exception as e:
+                return JSONResponse({"status": "error", "message": str(e)}, status_code=400)
+
+        async def delete_config(request: Request):
+            agent_executor.reset_config()
+            return JSONResponse({"status": "success", "message": "Configuration reset to default"})
+        
+        #region app mount
+        main_app.add_route("/config", get_config, methods=["GET"])
+        main_app.add_route("/config", post_config, methods=["POST"])
+        main_app.add_route("/config", delete_config, methods=["DELETE"])
 
         main_app.mount("/static", StaticFiles(directory="images"), name="static")
         main_app.mount("/agent", agent_app)

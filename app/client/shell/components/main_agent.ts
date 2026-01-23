@@ -24,6 +24,7 @@ import * as UI from "@a2ui/lit/ui";
 
 // App elements.
 import "../ui/ui.js";
+import "./agent/config_canvas.js"
 
 // Configurations
 import { AppConfig } from "../configs/types.js";
@@ -47,7 +48,7 @@ export class DynamicModule extends LitElement {
   accessor color = "#334155"
 
   @property({ type: Object })
-  accessor config: AppConfig = restaurantConfig;
+  accessor config: AppConfig = restaurantConfig; 
 
   @state()
   accessor response = ""
@@ -432,6 +433,7 @@ export class DynamicModule extends LitElement {
       </style>
       ${(this.#elapsedTime !== null || this.#currentElapsedTime !== null) ? html`<div class="stopwatch">Response time: ${((this.#elapsedTime || this.#currentElapsedTime || 0) / 1000).toFixed(2)}s</div>` : ""}
       ${this.#renderAppTitle()}
+      <agent-config-canvas></agent-config-canvas>
       ${this.#maybeRenderError()}
       ${this.#maybeRenderData()}
       ${this.#renderStatusWindow()}

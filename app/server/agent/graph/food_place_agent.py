@@ -1,17 +1,11 @@
-import json
-import logging
 import os
-from collections.abc import AsyncIterable
-from typing import Any
 from langchain.agents import create_agent
 from langchain_oci import ChatOCIGenAI
-from langchain.messages import HumanMessage, AIMessage, AnyMessage, ToolMessage
-from langgraph.graph.state import CompiledStateGraph
-from langchain_core.runnables import RunnableConfig
+from langchain_mcp_adapters.client import MultiServerMCPClient
 from dotenv import load_dotenv
 load_dotenv()
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain.messages import HumanMessage
+
+from agent.graph.struct import AgentConfig
 
 class RestaurantFinderAgent:
     """ Agent that has tools to find different restaurants depending on type of cuisine """
@@ -20,43 +14,60 @@ class RestaurantFinderAgent:
     Return your answer in the best way possible so other LLM can read the information and proceed.
     Only return a list of the names of restaurants/caffeterias found."""
 
-    def __init__(self, oci_model:str = "xai.grok-4-fast-non-reasoning"):
-        self.oci_model = oci_model
-        self._name = "place_finder_agent"
+    def __init__(self, config: AgentConfig = None):
+        if config:
+            self.oci_model = config.model
+            self.agent_name = config.name
+            self.model_temperature = config.temperature
+            self.system_prompt = config.system_prompt if config.system_prompt else self.AGENT_INSTRUCTIONS
+            self.tools_enabled = config.tools_enabled
+        else:
+            self.oci_model = "xai.grok-4-fast-non-reasoning"
+            self.model_temperature = 0.7
+            self.agent_name = "food_place_agent"
+            self.system_prompt = self.AGENT_INSTRUCTIONS
+            self.tools_enabled = ["get_restaurants","get_cafes"]
         self._client = self._init_oci_client()
         self.agent = None
-
-    def _init_oci_client(self):
-        client = ChatOCIGenAI(
-            model_id=self.oci_model,
-            service_endpoint=os.getenv("SERVICE_ENDPOINT"),
-            compartment_id=os.getenv("COMPARTMENT_ID"),
-            model_kwargs={"temperature":0.7},
-            auth_profile=os.getenv("AUTH_PROFILE"),
-        )
-
-        return client
 
     async def initialize(self):
         self.agent = await self._build_agent()
 
     async def __call__(self, state):
         return await self.agent.ainvoke(state)
+
+    def _init_oci_client(self):
+        client = ChatOCIGenAI(
+            model_id=self.oci_model,
+            service_endpoint=os.getenv("SERVICE_ENDPOINT"),
+            compartment_id=os.getenv("COMPARTMENT_ID"),
+            model_kwargs={"temperature": self.model_temperature},
+            auth_profile=os.getenv("AUTH_PROFILE"),
+        )
+
+        return client
     
     async def _build_agent(self):
         tools = await self._get_mcp_tools()
 
+        # filters the tools selected by user
+        agent_tools = [tool for tool in tools if tool.name in self.tools_enabled]
+
         return create_agent(
             model=self._client,
-            tools=tools,
-            system_prompt=self.AGENT_INSTRUCTIONS,
-            name=self._name
+            tools=agent_tools,
+            system_prompt=self.system_prompt,
+            name=self.agent_name
         )
 
     async def _get_mcp_tools(self):
         # MCP client connection using langchain mcp
         client = MultiServerMCPClient(
                 {
+                    "data_server": {
+                        "transport": "streamable_http",  # HTTP-based remote server
+                        "url": "http://localhost:8001/mcp",
+                    },
                     "food_place_server": {
                         "transport": "streamable_http",  # HTTP-based remote server
                         "url": "http://localhost:8000/mcp",
