@@ -1,6 +1,7 @@
 import os
 from langchain.agents import create_agent
 from langchain_oci import ChatOCIGenAI
+from langchain_openai import ChatOpenAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from dotenv import load_dotenv
 load_dotenv()
@@ -44,6 +45,13 @@ class RestaurantFinderAgent:
             model_kwargs={"temperature": self.model_temperature},
             auth_profile=os.getenv("AUTH_PROFILE"),
         )
+
+        # client = ChatOpenAI(
+        #     base_url=os.getenv("OPENAI_ENDPOINT"),
+        #     api_key=os.getenv("OPENAI_KEY"),
+        #     model="openai.gpt-4.1",
+        #     store = False,
+        # )
 
         return client
     

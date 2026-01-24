@@ -118,7 +118,21 @@ export class AgentConfigCanvas extends LitElement {
                 "name": this.agentName,
                 "system_prompt": this.systemPrompt,
                 "tools_enabled": this.toolsEnabled
-            },            
+            },
+            "data_finder_agent": {
+                "model": "openai.gpt-4.1",
+                "temperature": 0.7,
+                "name": "data_finder_agent",
+                "system_prompt": "You are an agent expert in finding restaurant data.You will receive the information about a list of restaurants or caffeterias to find information about. Your job is to gather that information and pass the full data to a new agent that will respond to the user. Important, consider including links, image references and other UI data to be rendered during next steps. Consider that caffeteria or restaurant data should be complete, use tools as required according to context. Make sure to use the exact restaurant names from information.",
+                "tools_enabled": ["get_restaurant_data", "get_cafe_data"]
+            },
+            "presenter_agent": {
+                "model": this.model,
+                "temperature": 0.7,
+                "system_prompt": "",
+                "name": "presenter_agent",
+                "tools_enabled": []
+            }
         };
 
         try {
@@ -153,22 +167,25 @@ export class AgentConfigCanvas extends LitElement {
     render() {
         const availableModels = [
             "xai.grok-4",
-            "xai.grok-4-fast",
-            "xai.grok-4-fast-non-reasoning"
+            "xai.grok-4-fast-non-reasoning",
+            "meta.llama-4-scout-17b-16e-instruct",
+            "openai.gpt-4.1",
+            "openai.gpt-oss-120b"
         ];
 
         const availableTools = [
             "get_restaurants",
-            "get_caffeterias",
+            "get_cafes",
             "get_restaurant_data",
             "get_cafe_data"
         ];
 
         return html`
-            <h2>Agent Configuration</h2>
+            <details open>
+                <summary><h2>Agent Configuration</h2></summary>
 
-            <div class="form-group">
-                <label for="model">Model:</label>
+                <div class="form-group">
+                    <label for="model">Model:</label>
                 <select
                     id="model"
                     .value=${this.model}
@@ -227,15 +244,16 @@ export class AgentConfigCanvas extends LitElement {
                         </div>
                     `)}
                 </div>
-            </div>
-
-            <button @click=${this.send}>Send Configuration</button>
-
-            ${this.responseMessage ? html`
-                <div class="response ${this.responseMessage.startsWith('Error') ? 'error' : 'success'}">
-                    ${this.responseMessage}
                 </div>
-            ` : ''}
+
+                <button @click=${this.send}>Send Configuration</button>
+
+                ${this.responseMessage ? html`
+                    <div class="response ${this.responseMessage.startsWith('Error') ? 'error' : 'success'}">
+                        ${this.responseMessage}
+                    </div>
+                ` : ''}
+            </details>
         `;
     }
 }
