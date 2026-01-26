@@ -27,8 +27,8 @@ export class AppContainer extends LitElement {
       display: flex;
       flex-direction: column;
       height: 100%;
-      padding: 2rem;
-      gap: 2rem;
+      padding: 0.5rem;
+      gap: 0.5rem;
     }
 
     .header {
@@ -49,17 +49,15 @@ export class AppContainer extends LitElement {
   render() {
     return html`
       <div class="container">
-        <div class="header">EDGE demo showcase</div>
-
         <div class="modules">
           <static-module></static-module>
           <chat-module
-            title="Chat app container"
+            title="Chatbot LLM"
             subtitle="App using LLM to chat, chatbot-UI"
             color="#717af8">
           </chat-module>
           <dynamic-module
-            title="Agent Application container"
+            title="Dynamic agent"
             subtitle="App using agent cluster and A2UI events for dynamic UI"
             color="#3c5d8b">
           </dynamic-module>

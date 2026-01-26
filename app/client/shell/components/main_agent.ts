@@ -25,6 +25,7 @@ import * as UI from "@a2ui/lit/ui";
 // App elements.
 import "../ui/ui.js";
 import "./agent/config_canvas.js"
+import "./stat_bar.js";
 
 // Configurations
 import { AppConfig } from "../configs/types.js";
@@ -97,27 +98,13 @@ export class DynamicModule extends LitElement {
         display: flex;
         flex-direction: column;
         margin: 0;
-        padding: 2rem;
+        padding: 0.5rem;
         color: light-dark(var(--n-10), var(--n-90));
         font-family: var(--font-family);
         border-radius: 1rem;
       }
 
-      .title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-      }
 
-      .stopwatch {
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-        padding: 0.5rem;
-        background: #1a2332;
-        border-radius: 0.25rem;
-        display: inline-block;
-      }
 
       .subtitle {
         font-size: 1rem;
@@ -431,21 +418,19 @@ export class DynamicModule extends LitElement {
           background: ${this.color};
         }
       </style>
-      ${(this.#elapsedTime !== null || this.#currentElapsedTime !== null) ? html`<div class="stopwatch">Response time: ${((this.#elapsedTime || this.#currentElapsedTime || 0) / 1000).toFixed(2)}s</div>` : ""}
-      ${this.#renderAppTitle()}
-      <agent-config-canvas></agent-config-canvas>
+      <stat-bar
+        .title=${this.title}
+        .time=${(this.#elapsedTime !== null || this.#currentElapsedTime !== null) ? `${((this.#elapsedTime || this.#currentElapsedTime || 0) / 1000).toFixed(2)}s` : '0.00s'}
+        .tokens=${'12456'}
+        .configUrl=${this.config.serverUrl + '/config'}
+      ></stat-bar>
       ${this.#maybeRenderError()}
       ${this.#maybeRenderData()}
       ${this.#renderStatusWindow()}
     `;
   }
 
-  #renderAppTitle() {
-    return html`<div class="title-section">
-        <div class="title">${this.title}</div>
-        ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
-      </div>`;
-  }
+
 
   #maybeRenderError() {
     if (!this.#error) return nothing;

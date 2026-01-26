@@ -4,6 +4,7 @@ import { consume } from "@lit/context"
 import { routerContext, A2UIRouter } from "../services/a2ui-router.js"
 import { marked } from "marked"
 import { unsafeHTML } from "lit/directives/unsafe-html.js"
+import "./stat_bar.js"
 
 @customElement("chat-module")
 export class ChatModule extends LitElement {
@@ -108,27 +109,13 @@ export class ChatModule extends LitElement {
   static styles = css`
     :host {
       border-radius: 1rem;
-      padding: 2rem;
+      padding: 0.5rem;
       color: white;
       display: flex;
       flex-direction: column;
     }
 
-    .title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
 
-    .stopwatch {
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      padding: 0.5rem;
-      background: #1a2332;
-      border-radius: 0.25rem;
-      display: inline-block;
-    }
 
     .subtitle {
       font-size: 1rem;
@@ -212,9 +199,12 @@ export class ChatModule extends LitElement {
           background: ${this.color};
         }
       </style>
-      ${this.#elapsedTime !== null ? html`<div class="stopwatch">Response time: ${(this.#elapsedTime / 1000).toFixed(2)}s</div>` : ""}
-      <div class="title">${this.title}</div>
-      ${this.subtitle ? html`<div class="subtitle">${this.subtitle}</div>` : ""}
+      <stat-bar
+        .title=${this.title}
+        .time=${this.#elapsedTime !== null ? `${(this.#elapsedTime / 1000).toFixed(2)}s` : '0.00s'}
+        .tokens=${'569'}
+        .configUrl=${'/llm_config'}
+      ></stat-bar>
       <div class="response">${unsafeHTML(marked(this.response || "Waiting for query...") as string)}</div>
       <div class="status">
         <p>Status:</p>
