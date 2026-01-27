@@ -113,6 +113,7 @@ export class ChatModule extends LitElement {
       color: white;
       display: flex;
       flex-direction: column;
+      flex: 1;
     }
 
 

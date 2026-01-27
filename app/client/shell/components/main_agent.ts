@@ -24,7 +24,7 @@ import * as UI from "@a2ui/lit/ui";
 
 // App elements.
 import "../ui/ui.js";
-import "./agent/config_canvas.js"
+import "./config_canvas.js"
 import "./stat_bar.js";
 
 // Configurations
@@ -97,6 +97,7 @@ export class DynamicModule extends LitElement {
       :host {
         display: flex;
         flex-direction: column;
+        flex: 1;
         margin: 0;
         padding: 0.5rem;
         color: light-dark(var(--n-10), var(--n-90));

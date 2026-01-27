@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
 // Import the config canvas component
-import "./agent/config_canvas.js";
+import "./config_canvas.js";
 
 @customElement("stat-bar")
 export class StatBar extends LitElement {

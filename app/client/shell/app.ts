@@ -12,6 +12,12 @@ export class AppContainer extends LitElement {
   @provide({ context: routerContext })
   accessor router = a2uiRouter;
 
+  @state()
+  accessor showingTraditional = true;
+
+  @state()
+  accessor showingChat = true;
+
   static styles = css`
     :host {
       display: flex;
@@ -32,14 +38,32 @@ export class AppContainer extends LitElement {
     }
 
     .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       color: white;
-      font-size: 2rem;
-      font-weight: 700;
+      font-size: 1rem;
+      font-weight: 300;
+      margin-bottom: 0rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: white;
+      font-size: 1rem;
     }
 
     .modules {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 1.5rem;
       flex: 1;
       width: 100%;
@@ -49,13 +73,34 @@ export class AppContainer extends LitElement {
   render() {
     return html`
       <div class="container">
+        <div class="header">
+          A2UI
+          <div class="controls">
+            <label class="control">
+              <input
+                type="checkbox"
+                .checked=${this.showingTraditional}
+                @change=${(e: Event) => this.showingTraditional = (e.target as HTMLInputElement).checked}
+              />
+              Traditional
+            </label>
+            <label class="control">
+              <input
+                type="checkbox"
+                .checked=${this.showingChat}
+                @change=${(e: Event) => this.showingChat = (e.target as HTMLInputElement).checked}
+              />
+              Chat
+            </label>
+          </div>
+        </div>
         <div class="modules">
-          <static-module></static-module>
-          <chat-module
+          ${this.showingTraditional ? html`<static-module></static-module>` : ''}
+          ${this.showingChat ? html`<chat-module
             title="Chatbot LLM"
             subtitle="App using LLM to chat, chatbot-UI"
             color="#717af8">
-          </chat-module>
+          </chat-module>` : ''}
           <dynamic-module
             title="Dynamic agent"
             subtitle="App using agent cluster and A2UI events for dynamic UI"
