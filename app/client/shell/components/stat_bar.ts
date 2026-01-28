@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { AppConfigType, ConfigData } from "../configs/types.js";
 
 // Import the config canvas component
 import "./config_canvas.js";
@@ -17,6 +18,12 @@ export class StatBar extends LitElement {
 
   @property({ type: String })
   accessor configUrl = "";
+
+  @property({ type: String })
+  accessor configType: AppConfigType = 'agent';
+
+  @property({ type: Object })
+  accessor configData: ConfigData = {};
 
   static styles = css`
     :host {
@@ -65,7 +72,7 @@ export class StatBar extends LitElement {
       <div class="stat-bar">
         ${this.time ? html`<div class="time">${this.time}</div>` : ''}
         ${this.tokens ? html`<div class="tokens">TC: ${this.tokens}</div>` : ''}
-        ${this.configUrl ? html`<div class="config"><agent-config-canvas .serverURL=${this.configUrl}></agent-config-canvas></div>` : ''}
+        ${this.configUrl ? html`<div class="config"><agent-config-canvas .serverURL=${this.configUrl} .configType=${this.configType} .configData=${this.configData}></agent-config-canvas></div>` : ''}
         <div class="title">${this.title}</div>
       </div>
     `;

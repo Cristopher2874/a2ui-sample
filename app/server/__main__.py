@@ -156,9 +156,9 @@ def main(host, port):
             return JSONResponse({"status": "success", "message": "Configuration reset to default"})
         
         #region app mount
-        main_app.add_route("/config", get_config, methods=["GET"])
-        main_app.add_route("/config", post_config, methods=["POST"])
-        main_app.add_route("/config", delete_config, methods=["DELETE"])
+        main_app.add_route("/agent/config", get_config, methods=["GET"])
+        main_app.add_route("/agent/config", post_config, methods=["POST"])
+        main_app.add_route("/agent/config", delete_config, methods=["DELETE"])
 
         main_app.mount("/static", StaticFiles(directory="images"), name="static")
         main_app.mount("/agent", agent_app)

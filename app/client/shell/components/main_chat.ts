@@ -5,6 +5,7 @@ import { routerContext, A2UIRouter } from "../services/a2ui-router.js"
 import { marked } from "marked"
 import { unsafeHTML } from "lit/directives/unsafe-html.js"
 import "./stat_bar.js"
+import { chatConfig } from "../configs/chat_config.js"
 
 @customElement("chat-module")
 export class ChatModule extends LitElement {
@@ -205,6 +206,8 @@ export class ChatModule extends LitElement {
         .time=${this.#elapsedTime !== null ? `${(this.#elapsedTime / 1000).toFixed(2)}s` : '0.00s'}
         .tokens=${'569'}
         .configUrl=${'/llm_config'}
+        .configType=${'llm'}
+        .configData=${chatConfig}
       ></stat-bar>
       <div class="response">${unsafeHTML(marked(this.response || "Waiting for query...") as string)}</div>
       <div class="status">

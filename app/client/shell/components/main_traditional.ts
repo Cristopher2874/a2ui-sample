@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit"
 import { customElement } from "lit/decorators.js"
 import "./stat_bar.js"
+import { traditionalConfig } from "../configs/traditional_config.js"
 
 @customElement("static-module")
 export class StaticModule extends LitElement {
@@ -79,7 +80,7 @@ export class StaticModule extends LitElement {
 
   render() {
     return html`
-      <stat-bar .title=${"Traditional app"} .time=${""} .tokens=${""} .configUrl=${"/traditional_config"}></stat-bar>
+      <stat-bar .title=${"Traditional app"} .time=${""} .tokens=${""} .configUrl=${"/traditional_config"} .configType=${"traditional"} .configData=${traditionalConfig}></stat-bar>
       <div class="reservation-form">
         <h3>Make a Reservation</h3>
         <div class="form-group">

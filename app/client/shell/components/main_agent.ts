@@ -30,6 +30,7 @@ import "./stat_bar.js";
 // Configurations
 import { AppConfig } from "../configs/types.js";
 import { config as restaurantConfig } from "../configs/restaurant.js";
+import { agentConfig } from "../configs/agent_config.js";
 
 @customElement("dynamic-module")
 export class DynamicModule extends LitElement {
@@ -424,6 +425,8 @@ export class DynamicModule extends LitElement {
         .time=${(this.#elapsedTime !== null || this.#currentElapsedTime !== null) ? `${((this.#elapsedTime || this.#currentElapsedTime || 0) / 1000).toFixed(2)}s` : '0.00s'}
         .tokens=${'12456'}
         .configUrl=${this.config.serverUrl + '/config'}
+        .configType=${'agent'}
+        .configData=${agentConfig}
       ></stat-bar>
       ${this.#maybeRenderError()}
       ${this.#maybeRenderData()}

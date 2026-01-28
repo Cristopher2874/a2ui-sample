@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit"
 import { customElement, property, state } from "lit/decorators.js"
+import { AppConfigType, ConfigData, AgentAppConfig, LLMConfig, TraditionalConfig, EnhancedAgentAppConfig, ToolAssignments } from "../configs/types.js"
 
 @customElement("agent-config-canvas")
 export class AgentConfigCanvas extends LitElement {
@@ -8,57 +9,53 @@ export class AgentConfigCanvas extends LitElement {
   @property({ type: String })
   accessor serverURL = "http://localhost:10002/config"
 
-  @state() accessor agentsConfig = {
-    "place_finder_agent": {
-      model: "xai.grok-4-fast-non-reasoning",
-      temperature: 0.7,
-      name: "place_finder_agent",
-      systemPrompt: "You are an agent that is specialized on finding different restaurants/caffeterias depending on type of cuisine. Return your answer in the best way possible so other LLM can read the information and proceed. Only return a list of the names of restaurants/caffeterias found.",
-      toolsEnabled: ["get_restaurants, get_cafes"]
-    },
-    "data_finder_agent": {
-      model: "openai.gpt-4.1",
-      temperature: 0.7,
-      name: "data_finder_agent",
-      systemPrompt: "You are an agent expert in finding restaurant data.You will receive the information about a list of restaurants or caffeterias to find information about. Your job is to gather that information and pass the full data to a new agent that will respond to the user. Important, consider including links, image references and other UI data to be rendered during next steps. Consider that caffeteria or restaurant data should be complete, use tools as required according to context. Make sure to use the exact restaurant names from information.",
-      toolsEnabled: ["get_restaurant_data", "get_cafe_data"]
-    },
-    "presenter_agent": {
-      model: "xai.grok-4-fast-non-reasoning",
-      temperature: 0.7,
-      name: "presenter_agent",
-      systemPrompt: "",
-      toolsEnabled: []
-    }
-  };
+  @property({ type: String })
+  accessor configType: AppConfigType = 'agent';
+
+  @property({ type: Object })
+  accessor configData: ConfigData = {};
+
+  @state() accessor activeTab: string = '';
 
   @state() accessor responseMessage = "";
 
-  private handleToolChange(agentName: string, tool: string, checked: boolean) {
+  private handleAgentToolChange(agentName: string, tool: string, checked: boolean) {
+    if (this.configType !== 'agent' || !this.configData) return;
+
+    const agentConfig = this.configData as AgentAppConfig;
     if (checked) {
-      this.agentsConfig = {
-        ...this.agentsConfig,
-        [agentName]: {
-          ...this.agentsConfig[agentName],
-          toolsEnabled: [...this.agentsConfig[agentName].toolsEnabled, tool]
-        }
-      };
+      agentConfig[agentName].toolsEnabled = [...agentConfig[agentName].toolsEnabled, tool];
     } else {
-      this.agentsConfig = {
-        ...this.agentsConfig,
-        [agentName]: {
-          ...this.agentsConfig[agentName],
-          toolsEnabled: this.agentsConfig[agentName].toolsEnabled.filter(t => t !== tool)
-        }
-      };
+      agentConfig[agentName].toolsEnabled = agentConfig[agentName].toolsEnabled.filter(t => t !== tool);
     }
+    this.configData = { ...agentConfig };
+  }
+
+  private handleLLMToolChange(tool: string, checked: boolean) {
+    if (this.configType !== 'llm' || !this.configData) return;
+
+    const llmConfig = this.configData as LLMConfig;
+    if (checked) {
+      llmConfig.toolsEnabled = [...llmConfig.toolsEnabled, tool];
+    } else {
+      llmConfig.toolsEnabled = llmConfig.toolsEnabled.filter(t => t !== tool);
+    }
+    this.configData = { ...llmConfig };
+  }
+
+  private handleTraditionalFieldChange(field: string, value: string) {
+    if (this.configType !== 'traditional' || !this.configData) return;
+
+    const traditionalConfig = this.configData as TraditionalConfig;
+    traditionalConfig[field] = value;
+    this.configData = { ...traditionalConfig };
   }
 
   static styles = css`
     :host {
       display: block;
-      font-family: 'Inter
-      margin-bottom: 1rem;
+      font-family: 'Inter;
+      margin-top: 1rem;
     }
 
     button {
@@ -80,7 +77,7 @@ export class AgentConfigCanvas extends LitElement {
 
     dialog {
       position: fixed;
-      top: 50%;
+      top: 80%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 90%;
@@ -88,7 +85,7 @@ export class AgentConfigCanvas extends LitElement {
       max-height: 80vh;
       overflow-y: auto;
       z-index: 1000;
-      background: white;
+      background: #c1d3ed;
       border: none;
       border-radius: 0.5rem;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -219,32 +216,126 @@ export class AgentConfigCanvas extends LitElement {
       border-left-color: #ef4444;
       color: #dc2626;
     }
+
+    /* Tab Styles */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-button {
+      padding: 0.75rem 1rem;
+      border: none;
+      background: none;
+      color: #64748b;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      text-transform: capitalize;
+    }
+
+    .tab-button:hover {
+      color: #334155;
+      background: #f8fafc;
+    }
+
+    .tab-button.active {
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .tab-content {
+      margin-bottom: 2rem;
+    }
+
+    /* Tools Section Styles */
+    .tools-section {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .tools-section h3 {
+      margin: 0 0 0.5rem 0;
+      color: #1e293b;
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .tools-description {
+      margin: 0 0 1.5rem 0;
+      color: #64748b;
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    .tool-assignment {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      background: #f8fafc;
+      border-radius: 0.5rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid #e2e8f0;
+    }
+
+    .tool-assignment:last-child {
+      margin-bottom: 0;
+    }
+
+    .tool-name {
+      font-weight: 500;
+      color: #1e293b;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      background: #e2e8f0;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .tool-assignment select {
+      width: auto;
+      min-width: 200px;
+      margin-left: 1rem;
+    }
   `
 
   async send(): Promise<void> {
-    const inputData = {
-      "place_finder_agent": {
-        "model": this.agentsConfig["place_finder_agent"].model,
-        "temperature": this.agentsConfig["place_finder_agent"].temperature,
-        "name": this.agentsConfig["place_finder_agent"].name,
-        "system_prompt": this.agentsConfig["place_finder_agent"].systemPrompt,
-        "tools_enabled": this.agentsConfig["place_finder_agent"].toolsEnabled
-      },
-      "data_finder_agent": {
-        "model": this.agentsConfig["data_finder_agent"].model,
-        "temperature": this.agentsConfig["data_finder_agent"].temperature,
-        "name": this.agentsConfig["data_finder_agent"].name,
-        "system_prompt": this.agentsConfig["data_finder_agent"].systemPrompt,
-        "tools_enabled": this.agentsConfig["data_finder_agent"].toolsEnabled
-      },
-      "presenter_agent": {
-        "model": this.agentsConfig["presenter_agent"].model,
-        "temperature": this.agentsConfig["presenter_agent"].temperature,
-        "name": this.agentsConfig["presenter_agent"].name,
-        "system_prompt": this.agentsConfig["presenter_agent"].systemPrompt,
-        "tools_enabled": this.agentsConfig["presenter_agent"].toolsEnabled
-      }
-    };
+    let inputData: any = {};
+
+    switch (this.configType) {
+      case 'agent':
+        const enhancedConfig = this.configData as EnhancedAgentAppConfig;
+        inputData = Object.keys(enhancedConfig.agents).reduce((acc, agentName) => {
+          acc[agentName] = {
+            model: enhancedConfig.agents[agentName].model,
+            temperature: enhancedConfig.agents[agentName].temperature,
+            name: enhancedConfig.agents[agentName].name,
+            system_prompt: enhancedConfig.agents[agentName].systemPrompt,
+            tools_enabled: enhancedConfig.agents[agentName].toolsEnabled
+          };
+          return acc;
+        }, {} as any);
+        break;
+      case 'llm':
+        const llmConfig = this.configData as LLMConfig;
+        inputData = {
+          model: llmConfig.model,
+          temperature: llmConfig.temperature,
+          name: llmConfig.name,
+          system_prompt: llmConfig.systemPrompt,
+          tools_enabled: llmConfig.toolsEnabled
+        };
+        break;
+      case 'traditional':
+        inputData = this.configData as TraditionalConfig;
+        break;
+    }
 
     try {
       const response = await fetch(this.serverURL, {
@@ -283,55 +374,229 @@ export class AgentConfigCanvas extends LitElement {
       "get_cafe_data"
     ];
 
-    return html`
-      <button @click=${() => { this.open = true; this.shadowRoot?.querySelector('dialog')?.showModal(); }}>Cfg</button>
-      <dialog ?open=${this.open} @close=${() => this.open = false}>
-        <h2>Agent Configuration</h2>
-        ${Object.keys(this.agentsConfig).map(agentName => html`
+    const availableDBTypes = [
+      "MySQL",
+      "PostgreSQL",
+      "SQLite",
+      "MongoDB"
+    ];
+
+    const availableThemes = [
+      "default",
+      "dark",
+      "light"
+    ];
+
+    let title = "Configuration";
+    let content: any = null;
+
+    switch (this.configType) {
+      case 'agent':
+        title = "Agent Team Configuration";
+        const enhancedConfig = this.configData as EnhancedAgentAppConfig;
+        const agentNames = Object.keys(enhancedConfig.agents);
+
+        // Set default active tab
+        if (!this.activeTab && agentNames.length > 0) {
+          this.activeTab = agentNames[0];
+        }
+
+        const activeAgent = enhancedConfig.agents[this.activeTab];
+
+        content = html`
+          <!-- Agent Tabs -->
+          <div class="tabs">
+            ${agentNames.map(agentName => html`
+              <button
+                class="tab-button ${this.activeTab === agentName ? 'active' : ''}"
+                @click=${() => this.activeTab = agentName}
+              >
+                ${agentName.replace('_', ' ')}
+              </button>
+            `)}
+          </div>
+
+          <!-- Active Agent Configuration -->
+          ${activeAgent ? html`
+            <div class="tab-content">
+              <div class="form-group">
+                <label for="agent-model">Model:</label>
+                <select
+                  id="agent-model"
+                  .value=${activeAgent.model}
+                  @change=${(e: Event) => {
+                    const newConfig = { ...enhancedConfig };
+                    newConfig.agents[this.activeTab].model = (e.target as HTMLSelectElement).value;
+                    this.configData = newConfig;
+                  }}
+                >
+                  ${availableModels.map(model => html`
+                    <option value=${model} ?selected=${activeAgent.model === model}>${model}</option>
+                  `)}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="agent-temperature">Temperature:</label>
+                <input
+                  id="agent-temperature"
+                  type="number"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  .value=${activeAgent.temperature.toString()}
+                  @input=${(e: Event) => {
+                    const newConfig = { ...enhancedConfig };
+                    newConfig.agents[this.activeTab].temperature = parseFloat((e.target as HTMLInputElement).value) || 0;
+                    this.configData = newConfig;
+                  }}
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="agent-name">Name:</label>
+                <input
+                  id="agent-name"
+                  type="text"
+                  .value=${activeAgent.name}
+                  @input=${(e: Event) => {
+                    const newConfig = { ...enhancedConfig };
+                    newConfig.agents[this.activeTab].name = (e.target as HTMLInputElement).value;
+                    this.configData = newConfig;
+                  }}
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="agent-systemPrompt">System Prompt:</label>
+                <textarea
+                  id="agent-systemPrompt"
+                  .value=${activeAgent.systemPrompt}
+                  @input=${(e: Event) => {
+                    const newConfig = { ...enhancedConfig };
+                    newConfig.agents[this.activeTab].systemPrompt = (e.target as HTMLTextAreaElement).value;
+                    this.configData = newConfig;
+                  }}
+                ></textarea>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Tools Assignment Section -->
+          <div class="tools-section">
+            <h3>Tool Assignments</h3>
+            <p class="tools-description">Assign tools to agents. Each tool can only be assigned to one agent.</p>
+            ${availableTools.map(tool => {
+              const assignedAgent = enhancedConfig.toolAssignments[tool];
+              const availableAgents = agentNames.filter(agent => agent === assignedAgent || !Object.values(enhancedConfig.toolAssignments).includes(agent));
+
+              return html`
+                <div class="tool-assignment">
+                  <span class="tool-name">${tool}</span>
+                  <select
+                    .value=${assignedAgent || ''}
+                    @change=${(e: Event) => {
+                      const selectedAgent = (e.target as HTMLSelectElement).value;
+                      const newConfig = { ...enhancedConfig };
+
+                      // Remove old assignment
+                      if (assignedAgent) {
+                        delete newConfig.toolAssignments[tool];
+                        // Remove from agent's toolsEnabled
+                        const agentTools = newConfig.agents[assignedAgent].toolsEnabled;
+                        newConfig.agents[assignedAgent].toolsEnabled = agentTools.filter(t => t !== tool);
+                      }
+
+                      // Add new assignment
+                      if (selectedAgent) {
+                        newConfig.toolAssignments[tool] = selectedAgent;
+                        // Add to agent's toolsEnabled
+                        const agentTools = newConfig.agents[selectedAgent].toolsEnabled;
+                        if (!agentTools.includes(tool)) {
+                          newConfig.agents[selectedAgent].toolsEnabled = [...agentTools, tool];
+                        }
+                      }
+
+                      this.configData = newConfig;
+                    }}
+                  >
+                    <option value="">-- Not Assigned --</option>
+                    ${availableAgents.map(agent => html`
+                      <option value=${agent} ?selected=${assignedAgent === agent}>
+                        ${agent.replace('_', ' ')}
+                      </option>
+                    `)}
+                  </select>
+                </div>
+              `;
+            })}
+          </div>
+        `;
+        break;
+
+      case 'llm':
+        title = "LLM Configuration";
+        const llmConfig = this.configData as LLMConfig;
+        content = html`
           <div>
-            <h3>${agentName}</h3>
             <div class="form-group">
-              <label for="${agentName}-model">Model:</label>
+              <label for="llm-model">Model:</label>
               <select
-                id="${agentName}-model"
-                .value=${this.agentsConfig[agentName].model}
-                @change=${(e: Event) => this.agentsConfig = { ...this.agentsConfig, [agentName]: { ...this.agentsConfig[agentName], model: (e.target as HTMLSelectElement).value } }}
+                id="llm-model"
+                .value=${llmConfig.model}
+                @change=${(e: Event) => {
+                  const newConfig = { ...llmConfig };
+                  newConfig.model = (e.target as HTMLSelectElement).value;
+                  this.configData = newConfig;
+                }}
               >
                 ${availableModels.map(model => html`
-                  <option value=${model} ?selected=${this.agentsConfig[agentName].model === model}>${model}</option>
+                  <option value=${model} ?selected=${llmConfig.model === model}>${model}</option>
                 `)}
               </select>
             </div>
 
             <div class="form-group">
-              <label for="${agentName}-temperature">Temperature:</label>
+              <label for="llm-temperature">Temperature:</label>
               <input
-                id="${agentName}-temperature"
+                id="llm-temperature"
                 type="number"
                 min="0"
                 max="2"
                 step="0.1"
-                .value=${this.agentsConfig[agentName].temperature.toString()}
-                @input=${(e: Event) => this.agentsConfig = { ...this.agentsConfig, [agentName]: { ...this.agentsConfig[agentName], temperature: parseFloat((e.target as HTMLInputElement).value) || 0 } }}
+                .value=${llmConfig.temperature.toString()}
+                @input=${(e: Event) => {
+                  const newConfig = { ...llmConfig };
+                  newConfig.temperature = parseFloat((e.target as HTMLInputElement).value) || 0;
+                  this.configData = newConfig;
+                }}
               />
             </div>
 
             <div class="form-group">
-              <label for="${agentName}-name">Name:</label>
+              <label for="llm-name">Name:</label>
               <input
-                id="${agentName}-name"
+                id="llm-name"
                 type="text"
-                .value=${this.agentsConfig[agentName].name}
-                @input=${(e: Event) => this.agentsConfig = { ...this.agentsConfig, [agentName]: { ...this.agentsConfig[agentName], name: (e.target as HTMLInputElement).value } }}
+                .value=${llmConfig.name}
+                @input=${(e: Event) => {
+                  const newConfig = { ...llmConfig };
+                  newConfig.name = (e.target as HTMLInputElement).value;
+                  this.configData = newConfig;
+                }}
               />
             </div>
 
             <div class="form-group">
-              <label for="${agentName}-systemPrompt">System Prompt:</label>
+              <label for="llm-systemPrompt">System Prompt:</label>
               <textarea
-                id="${agentName}-systemPrompt"
-                .value=${this.agentsConfig[agentName].systemPrompt}
-                @input=${(e: Event) => this.agentsConfig = { ...this.agentsConfig, [agentName]: { ...this.agentsConfig[agentName], systemPrompt: (e.target as HTMLTextAreaElement).value } }}
+                id="llm-systemPrompt"
+                .value=${llmConfig.systemPrompt}
+                @input=${(e: Event) => {
+                  const newConfig = { ...llmConfig };
+                  newConfig.systemPrompt = (e.target as HTMLTextAreaElement).value;
+                  this.configData = newConfig;
+                }}
               ></textarea>
             </div>
 
@@ -342,17 +607,79 @@ export class AgentConfigCanvas extends LitElement {
                   <div class="checkbox-item">
                     <input
                       type="checkbox"
-                      id="${agentName}-${tool}"
-                      .checked=${this.agentsConfig[agentName].toolsEnabled.includes(tool)}
-                      @change=${(e: Event) => this.handleToolChange(agentName, tool, (e.target as HTMLInputElement).checked)}
+                      id="llm-${tool}"
+                      .checked=${llmConfig.toolsEnabled.includes(tool)}
+                      @change=${(e: Event) => this.handleLLMToolChange(tool, (e.target as HTMLInputElement).checked)}
                     />
-                    <label for="${agentName}-${tool}">${tool}</label>
+                    <label for="llm-${tool}">${tool}</label>
                   </div>
                 `)}
               </div>
             </div>
           </div>
-        `)}
+        `;
+        break;
+
+      case 'traditional':
+        title = "Application Configuration";
+        const traditionalConfig = this.configData as TraditionalConfig;
+        content = html`
+          <div>
+            <div class="form-group">
+              <label for="db-type">Database Type:</label>
+              <select
+                id="db-type"
+                .value=${traditionalConfig.databaseType}
+                @change=${(e: Event) => this.handleTraditionalFieldChange('databaseType', (e.target as HTMLSelectElement).value)}
+              >
+                ${availableDBTypes.map(db => html`
+                  <option value=${db} ?selected=${traditionalConfig.databaseType === db}>${db}</option>
+                `)}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="business-branch">Business Branch:</label>
+              <input
+                id="business-branch"
+                type="text"
+                .value=${traditionalConfig.businessBranch}
+                @input=${(e: Event) => this.handleTraditionalFieldChange('businessBranch', (e.target as HTMLInputElement).value)}
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="api-endpoint">API Endpoint:</label>
+              <input
+                id="api-endpoint"
+                type="text"
+                .value=${traditionalConfig.apiEndpoint}
+                @input=${(e: Event) => this.handleTraditionalFieldChange('apiEndpoint', (e.target as HTMLInputElement).value)}
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="theme">Theme:</label>
+              <select
+                id="theme"
+                .value=${traditionalConfig.theme}
+                @change=${(e: Event) => this.handleTraditionalFieldChange('theme', (e.target as HTMLSelectElement).value)}
+              >
+                ${availableThemes.map(theme => html`
+                  <option value=${theme} ?selected=${traditionalConfig.theme === theme}>${theme}</option>
+                `)}
+              </select>
+            </div>
+          </div>
+        `;
+        break;
+    }
+
+    return html`
+      <button @click=${() => { this.open = true; this.shadowRoot?.querySelector('dialog')?.showModal(); }}>Cfg</button>
+      <dialog ?open=${this.open} @close=${() => this.open = false}>
+        <h2>${title}</h2>
+        ${content}
         <div class="dialog-buttons">
           <button class="send-btn" @click=${this.send}>Send Configuration</button>
           <button class="close-btn" @click=${() => { this.open = false; this.shadowRoot?.querySelector('dialog')?.close(); }}>Close</button>

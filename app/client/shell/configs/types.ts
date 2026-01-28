@@ -39,3 +39,68 @@ export interface AppConfig {
   /** Theme overrides (CSS Variables) */
   theme?: v0_8.Types.Theme;
 }
+
+/**
+ * Configuration for a single agent
+ */
+export interface AgentConfig {
+  model: string;
+  temperature: number;
+  name: string;
+  systemPrompt: string;
+  toolsEnabled: string[];
+}
+
+/**
+ * Configuration types for the config canvas
+ */
+export type AppConfigType = 'agent' | 'llm' | 'traditional';
+
+/**
+ * Agent-based configurations (multiple agents)
+ */
+export interface AgentAppConfig {
+  [agentName: string]: AgentConfig;
+}
+
+/**
+ * Single LLM configuration
+ */
+export interface LLMConfig {
+  model: string;
+  temperature: number;
+  name: string;
+  systemPrompt: string;
+  toolsEnabled: string[];
+}
+
+/**
+ * Traditional app configuration (non-AI)
+ */
+export interface TraditionalConfig {
+  databaseType: string;
+  businessBranch: string;
+  apiEndpoint: string;
+  theme: string;
+  [key: string]: string; // Allow additional string fields
+}
+
+/**
+ * Tool assignments for agent configurations (tool name -> agent name)
+ */
+export interface ToolAssignments {
+  [toolName: string]: string; // tool name -> agent name
+}
+
+/**
+ * Enhanced agent app configuration with tool assignments
+ */
+export interface EnhancedAgentAppConfig {
+  agents: AgentAppConfig;
+  toolAssignments: ToolAssignments;
+}
+
+/**
+ * Union type for different configuration data
+ */
+export type ConfigData = AgentAppConfig | LLMConfig | TraditionalConfig | EnhancedAgentAppConfig;
