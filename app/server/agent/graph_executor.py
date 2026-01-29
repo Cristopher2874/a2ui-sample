@@ -122,9 +122,12 @@ class RestaurantGraphExecutor(AgentExecutor):
         async for item in agent.call_restaurant_graph(query, task.context_id):
             is_task_complete = item["is_task_complete"]
             if not is_task_complete:
+                update_parts = []
+                update_parts.append(Part(root=TextPart(text=item['updates'])))
+                update_parts.append(Part(root=TextPart(text=item['detailed_updates'])))
                 await updater.update_status(
                     TaskState.working,
-                    new_agent_text_message(item["updates"], task.context_id, task.id),
+                    new_agent_parts_message(update_parts, task.context_id, task.id),
                 )
                 continue
 
@@ -162,6 +165,9 @@ class RestaurantGraphExecutor(AgentExecutor):
                         final_parts.append(Part(root=TextPart(text=json_string)))
             else:
                 final_parts.append(Part(root=TextPart(text=content.strip())))
+
+            final_parts.append(Part(root=TextPart(text=item['detailed_updates'])))
+            final_parts.append(Part(root=TextPart(text=item['token_count'])))
 
             logger.info("--- FINAL PARTS TO BE SENT ---")
             for i, part in enumerate(final_parts):

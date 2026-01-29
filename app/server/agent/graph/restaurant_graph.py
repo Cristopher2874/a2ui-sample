@@ -46,17 +46,20 @@ class RestaurantGraph:
 
         self._restaurant_graph = graph_builder.compile(checkpointer=checkpointer)
 
-    def _format_tool_call_message(self, message: AnyMessage) -> str:
+    def _format_tool_call_message(self, message: AnyMessage) -> tuple[str, str]:
         tool_name = str(message.tool_calls[0].get('name'))
         tool_args = str(message.tool_calls[0].get('args'))
         agent_name = str(message.name) if message.name else ""
-        # return f"Agent {agent_name} called tool: {tool_name} with args {tool_args}"
-        return f"Agent {agent_name} called tool: {tool_name}"
+        timeline_message = f"{agent_name} called tool: {tool_name}"
+        detailed_message = f"Agent {agent_name} called tool: {tool_name} with args {tool_args}"
+        return timeline_message, detailed_message
 
-    def _format_tool_message(self, message: ToolMessage) -> str:
+    def _format_tool_message(self, message: ToolMessage) -> tuple[str, str]:
         tool_name = str(message.name)
         status_content = str(message.content)
-        return f"Tool {tool_name} responded"
+        timeline_message = f"Tool {tool_name} responded"
+        detailed_message = f"Tool {tool_name} responded with data:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}"
+        return timeline_message, detailed_message
 
     def _format_ai_message(self, message: AIMessage, model_token_count: int) -> tuple[str, int, str]:
         status_content = str(message.content)
@@ -68,18 +71,23 @@ class RestaurantGraph:
             model_id: {model_id},
             total_tokens_on_call: {str(updated_token_count)}
         """
-        # formatted = f"{agent_name} response:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}...\n\nAgent metadata:\n{model_data}"
-        formatted = f"{agent_name} responded"
-        return formatted, updated_token_count, formatted
+        formatted = f"{agent_name} response:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}...\n\nAgent metadata:\n{model_data}"
+        
+        timeline_message = f"{agent_name} responded"
+        detailed_message = formatted
+        return timeline_message, updated_token_count, detailed_message
 
-    def _format_human_message(self, message: HumanMessage, node_name: str) -> str:
+    def _format_human_message(self, message: HumanMessage, node_name: str) -> tuple[str, str]:
         status_content = str(message.content)
-        # return f"Query in process at {node_name}:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
-        return f"{node_name} processing"
+        timeline_message = f"Current query: {node_name}"
+        detailed_message = f"Query in process at {node_name}:\n{status_content[:self.CONTENT_TRUNCATION_LENGTH]}..."
+        return timeline_message, detailed_message
 
-    def _format_other_message(self, message: AnyMessage, node_name: str) -> str:
+    def _format_other_message(self, message: AnyMessage, node_name: str) -> tuple[str, str]:
         status_content = str(message.content)
-        return f"Calling node {node_name}"
+        timeline_message = f"Calling node: {node_name}"
+        detailed_message = f"Calling node {node_name} with status: {status_content[:self.CONTENT_TRUNCATION_LENGTH]}"
+        return timeline_message, detailed_message
 
     async def call_restaurant_graph(self, query, session_id) -> AsyncIterable[dict[str, Any]]:
         current_message = {"messages":[HumanMessage(query)]}
@@ -101,18 +109,18 @@ class RestaurantGraph:
 
             # Format the message based on its type
             if hasattr(latest_message, 'tool_calls') and latest_message.tool_calls:
-                formatted_update = self._format_tool_call_message(latest_message)
+                timeline_message, detailed_message = self._format_tool_call_message(latest_message)
             elif isinstance(latest_message, ToolMessage):
-                formatted_update = self._format_tool_message(latest_message)
+                timeline_message, detailed_message = self._format_tool_message(latest_message)
             elif isinstance(latest_message, AIMessage):
-                formatted_update, model_token_count, final_model_state = self._format_ai_message(latest_message, model_token_count)
+                timeline_message, model_token_count, detailed_message = self._format_ai_message(latest_message, model_token_count)
             elif isinstance(latest_message, HumanMessage):
                 # For human messages, update node_name from state before formatting
                 state = self._restaurant_graph.get_state(config=config, subgraphs=True)
                 node_name = str(state.next[0]) if state.next else "GRAPH"
-                formatted_update = self._format_human_message(latest_message, node_name)
+                timeline_message, detailed_message = self._format_human_message(latest_message, node_name)
             else:
-                formatted_update = self._format_other_message(latest_message, node_name)
+                timeline_message, detailed_message = self._format_other_message(latest_message, node_name)
 
             # Update node_name from graph state for non-human messages
             if not isinstance(latest_message, HumanMessage):
@@ -122,7 +130,8 @@ class RestaurantGraph:
             # Yield intermediate updates
             yield {
                 "is_task_complete": False,
-                "updates": formatted_update
+                "updates": timeline_message,
+                "detailed_updates": detailed_message
             }
         
         # Update the final response to contain the model_status.
@@ -132,7 +141,9 @@ class RestaurantGraph:
 
         yield {
             "is_task_complete": True,
-            "content": final_response_content
+            "content": final_response_content,
+            "detailed_updates": detailed_message,
+            "token_count": str(model_token_count)
         }
 
 #region Testing

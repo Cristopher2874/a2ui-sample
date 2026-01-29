@@ -302,15 +302,15 @@ export class AgentConfigCanvas extends LitElement {
       width: auto;
       min-width: 200px;
       margin-left: 1rem;
-    }
-  `
-
-  async send(): Promise<void> {
-    let inputData: any = {};
-
-    switch (this.configType) {
-      case 'agent':
-        const enhancedConfig = this.configData as EnhancedAgentAppConfig;
+      }
+      `
+      
+      async send(): Promise<void> {
+        let inputData: any = {};
+        
+        switch (this.configType) {
+          case 'agent':
+            const enhancedConfig = this.configData as EnhancedAgentAppConfig;
         inputData = Object.keys(enhancedConfig.agents).reduce((acc, agentName) => {
           acc[agentName] = {
             model: enhancedConfig.agents[agentName].model,
@@ -338,6 +338,7 @@ export class AgentConfigCanvas extends LitElement {
     }
 
     try {
+      console.log(inputData)
       const response = await fetch(this.serverURL, {
         method: "POST",
         headers: {
